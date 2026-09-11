@@ -51,6 +51,6 @@ export interface PredictWaitRequest {
 export interface PredictWaitResponse {
   predicted_mins: number;
   triage_level: TriageLevel;
-  source: 'gemini-1.5-flash' | 'deterministic-fallback' | 'acute-override';
+  source: 'gemini-3.6-flash' | 'safety-override' | 'deterministic-fallback';
   reasoning?: string;
 }
