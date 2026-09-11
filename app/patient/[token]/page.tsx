@@ -1,4 +1,5 @@
 import { Clock, User, Stethoscope, MapPin, Volume2 } from "lucide-react";
+import StatusBadge from "@/components/StatusBadge";
 
 export default async function PatientPage({
   params,
@@ -36,18 +37,11 @@ export default async function PatientPage({
       {/* Main Content */}
       <main className="flex-1 flex flex-col space-y-6 max-w-md w-full mx-auto">
         
-        {/* Status Badge Placeholder */}
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start space-x-3">
-          <div className="bg-emerald-100 p-2 rounded-full mt-0.5">
-            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
-          </div>
-          <div>
-            <h2 className="text-emerald-800 font-bold text-lg">Relax / Outside</h2>
-            <p className="text-emerald-600 text-sm mt-0.5 leading-relaxed">
-              Your turn is more than 15 minutes away. You can wait in the cafeteria or open area.
-            </p>
-          </div>
-        </div>
+        <StatusBadge 
+          myToken={myToken} 
+          currentToken={currentToken} 
+          estimatedWaitMins={estimatedWaitMins} 
+        />
 
         {/* Giant Card for Tokens */}
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 sm:p-8 border border-slate-100 relative overflow-hidden">
