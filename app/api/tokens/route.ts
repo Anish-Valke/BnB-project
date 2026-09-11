@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { Doctor, Token } from "@/lib/types";
 import { calculateTokenWaitTime } from "@/lib/queue-calculator";
+import { checkSafetyRules } from "@/lib/ai/safety-rules";
+import { predictWaitDuration } from "@/lib/ai/gemini";
+import { getDeterministicFallback } from "@/lib/ai/fallback";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,9 +44,36 @@ export async function POST(request: NextRequest) {
     const highestTokenNum = maxTokenData && maxTokenData.length > 0 ? maxTokenData[0].token_number : doctorTyped.current_token || 60;
     const newTokenNum = highestTokenNum + 1;
 
-    // Default duration prediction if Dev 2 AI endpoint not called directly
-    const finalPredictedMins = typeof predicted_mins === "number" ? predicted_mins : 8;
-    const finalTriageLevel = triage_level || "routine";
+    // 3. Resolve duration prediction and triage level via AI / Fallback Pipeline
+    let finalPredictedMins = predicted_mins;
+    let finalTriageLevel = triage_level;
+    let predictionSource = "provided";
+
+    if (typeof finalPredictedMins !== "number" || !finalTriageLevel) {
+      const trimmedComplaint = chief_complaint.trim();
+      const safetyOverride = checkSafetyRules(trimmedComplaint);
+
+      if (safetyOverride) {
+        finalPredictedMins = safetyOverride.predicted_mins;
+        finalTriageLevel = safetyOverride.triage_level;
+        predictionSource = safetyOverride.source;
+      } else {
+        try {
+          if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY.trim() === "") {
+            throw new Error("GEMINI_API_KEY missing");
+          }
+          const aiPrediction = await predictWaitDuration(trimmedComplaint);
+          finalPredictedMins = aiPrediction.predicted_mins;
+          finalTriageLevel = aiPrediction.triage_level;
+          predictionSource = aiPrediction.source;
+        } catch {
+          const fallback = getDeterministicFallback(trimmedComplaint);
+          finalPredictedMins = fallback.predicted_mins;
+          finalTriageLevel = fallback.triage_level;
+          predictionSource = fallback.source;
+        }
+      }
+    }
 
     // 3. Create new token record
     const { data: newToken, error: insertErr } = await supabase
@@ -85,6 +115,7 @@ export async function POST(request: NextRequest) {
         token_number: newToken.token_number,
         predicted_mins: newToken.predicted_mins,
         triage_level: newToken.triage_level,
+        prediction_source: predictionSource,
         estimated_wait_mins: calculatedMetrics.estimated_wait_mins,
         expected_turn_time: calculatedMetrics.expected_turn_time,
         buffer_status: calculatedMetrics.buffer_status,
