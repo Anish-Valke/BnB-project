@@ -1,5 +1,6 @@
 import { Clock, User, Stethoscope, MapPin, Volume2 } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
+import HindiVoiceButton from "@/components/HindiVoiceButton";
 
 export default async function PatientPage({
   params,
@@ -89,13 +90,11 @@ export default async function PatientPage({
 
       </main>
 
-      {/* Floating Action Button for Audio Placeholder */}
-      <div className="fixed bottom-6 right-6 lg:bottom-8 lg:right-8">
-        <button className="bg-white text-emerald-600 shadow-lg shadow-emerald-600/20 border border-emerald-100 rounded-full py-3 px-5 flex items-center space-x-2 hover:bg-emerald-50 transition-colors active:scale-95">
-          <Volume2 className="w-5 h-5" />
-          <span className="font-bold text-sm">सुनें</span>
-        </button>
-      </div>
+      <HindiVoiceButton 
+        myToken={myToken} 
+        estimatedWaitMins={estimatedWaitMins} 
+        patientsAhead={patientsAhead} 
+      />
 
     </div>
   );
