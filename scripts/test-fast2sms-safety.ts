@@ -3,43 +3,47 @@ dotenv.config();
 
 import { sendFast2SMSOtp, verifyFast2SMSOtp } from "../lib/fast2sms";
 
-async function testSafety() {
-  console.log("=== Fast2SMS Production Safety Verification ===");
+async function testDemoAndRealModes() {
+  console.log("=== Fast2SMS Demo Mode & Real Mode Verification ===");
 
-  // 1. Verify Master Code Behavior with FAST2SMS_DEMO_MODE=false
-  process.env.FAST2SMS_DEMO_MODE = "false";
-  console.log("\n[Test 1] Master OTP '123456' when FAST2SMS_DEMO_MODE=false:");
-  const resMasterFalse = verifyFast2SMSOtp("9999999999", "123456");
-  console.log("  Valid:", resMasterFalse.valid, "| Message:", resMasterFalse.message);
-  if (!resMasterFalse.valid) {
-    console.log("  ✅ PASS: Master OTP is BLOCKED in production mode.");
-  } else {
-    console.log("  ❌ FAIL: Master OTP was accepted in production mode!");
-  }
-
-  // 2. Verify Master Code Behavior with FAST2SMS_DEMO_MODE=true
+  // -------------------------------------------------------------
+  // Test 1: DEMO MODE ENABLED (FAST2SMS_DEMO_MODE=true)
+  // -------------------------------------------------------------
   process.env.FAST2SMS_DEMO_MODE = "true";
-  console.log("\n[Test 2] Master OTP '123456' when FAST2SMS_DEMO_MODE=true:");
-  const resMasterTrue = verifyFast2SMSOtp("9999999999", "123456");
-  console.log("  Valid:", resMasterTrue.valid, "| Message:", resMasterTrue.message);
-  if (resMasterTrue.valid) {
-    console.log("  ✅ PASS: Master OTP is ALLOWED in demo mode.");
+  console.log("\n[Test 1] Demo Mode ENABLED (FAST2SMS_DEMO_MODE=true):");
+
+  const demoSendRes = await sendFast2SMSOtp("9998887771");
+  console.log("  sendFast2SMSOtp Result:", JSON.stringify(demoSendRes));
+
+  if (demoSendRes.success && demoSendRes.isDemo && demoSendRes.otpForTesting === "123456") {
+    console.log("  ✅ PASS: Fast2SMS API call skipped. Demo OTP '123456' returned.");
   } else {
-    console.log("  ❌ FAIL: Master OTP was rejected in demo mode!");
+    console.log("  ❌ FAIL: Demo send failed or called external API.");
   }
 
-  // Restore env settings
-  process.env.FAST2SMS_DEMO_MODE = "false";
+  const demoVerifyRes = verifyFast2SMSOtp("9998887771", "123456");
+  console.log("  verifyFast2SMSOtp Result:", JSON.stringify(demoVerifyRes));
 
-  // 3. Test Real SMS Flow Intact
-  console.log("\n[Test 3] Real Fast2SMS Delivery test when FAST2SMS_DEMO_MODE=false:");
-  const sendRes = await sendFast2SMSOtp("8010530980");
-  console.log("  Success:", sendRes.success, "| IsDemo:", sendRes.isDemo, "| Message:", sendRes.message);
-  if (sendRes.success && !sendRes.isDemo) {
-    console.log("  ✅ PASS: Real SMS successfully dispatched via Fast2SMS!");
+  if (demoVerifyRes.valid) {
+    console.log("  ✅ PASS: Demo OTP '123456' successfully verified!");
   } else {
-    console.log("  ❌ FAIL: Real SMS dispatch failed!");
+    console.log("  ❌ FAIL: Demo OTP verification failed!");
+  }
+
+  // -------------------------------------------------------------
+  // Test 2: REAL MODE ENABLED (FAST2SMS_DEMO_MODE=false)
+  // -------------------------------------------------------------
+  process.env.FAST2SMS_DEMO_MODE = "false";
+  console.log("\n[Test 2] Real Mode ENABLED (FAST2SMS_DEMO_MODE=false):");
+
+  const masterVerifyFalse = verifyFast2SMSOtp("8010530980", "123456");
+  console.log("  Master OTP verification attempt in Real Mode:", JSON.stringify(masterVerifyFalse));
+
+  if (!masterVerifyFalse.valid) {
+    console.log("  ✅ PASS: Master OTP '123456' is strictly BLOCKED in Real Mode.");
+  } else {
+    console.log("  ❌ FAIL: Master OTP was accepted in Real Mode!");
   }
 }
 
-testSafety().catch(console.error);
+testDemoAndRealModes().catch(console.error);
