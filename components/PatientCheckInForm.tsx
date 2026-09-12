@@ -255,7 +255,7 @@ export default function PatientCheckInForm({
       // 4. Redirect to dashboard
       router.push(`/patient/dashboard?tab=dashboard`);
     } catch (err: unknown) {
-      setErrorMsg(err.message || "An unexpected error occurred during check-in.");
+      setErrorMsg((err as Error).message || "An unexpected error occurred during check-in.");
       setIsSubmitting(false);
     }
   };

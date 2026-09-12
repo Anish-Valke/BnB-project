@@ -2,12 +2,20 @@ import React from "react";
 import GlassCard from "../ui/GlassCard";
 import { Stethoscope, ClipboardList } from "lucide-react";
 
+export interface PatientHistoryItem {
+  id: string | number;
+  date: string;
+  department: string;
+  chief_complaint: string;
+  prescription_text?: string;
+}
+
 interface PrescriptionEditorProps {
   doctorNotes: string;
   setDoctorNotes: (val: string) => void;
   prescriptionText: string;
   setPrescriptionText: (val: string) => void;
-  patientHistory?: unknown[];
+  patientHistory?: PatientHistoryItem[];
 }
 
 export default function PrescriptionEditor({

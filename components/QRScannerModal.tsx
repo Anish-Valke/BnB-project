@@ -62,7 +62,7 @@ export default function QRScannerModal({ onScanSuccess }: QRScannerModalProps) {
         processQrResult("HOSP-MUM-104");
       }
     } catch (err: unknown) {
-      console.warn("QR file decode fallback:", err?.message || err);
+      console.warn("QR file decode fallback:", (err as any)?.message || err);
       // Fallback auto-recognition for test images
       processQrResult("HOSP-MUM-104");
     } finally {

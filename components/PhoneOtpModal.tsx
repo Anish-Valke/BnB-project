@@ -60,7 +60,7 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
         }
       }
     } catch (err: unknown) {
-      setError(err.message || "Network error. Please try again.");
+      setError((err as Error).message || "Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
         }, 800);
       }
     } catch (err: unknown) {
-      setError(err.message || "Verification failed. Please try again.");
+      setError((err as Error).message || "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }
