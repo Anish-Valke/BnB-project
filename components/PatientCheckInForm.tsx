@@ -120,7 +120,7 @@ export default function PatientCheckInForm({
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handlePhoneVerified = (phone: string) => {
@@ -261,7 +261,7 @@ export default function PatientCheckInForm({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
 
       {/* Fast2SMS Phone OTP Verification Step */}
       {!phoneVerified ? (
@@ -274,7 +274,7 @@ export default function PatientCheckInForm({
             </div>
             <div>
               <p className="text-xs font-semibold text-emerald-800">
-                Fast2SMS Verified Mobile
+                ArogyaFlow Verified Mobile
               </p>
               <p className="text-xs font-mono text-emerald-600">{verifiedPhone}</p>
             </div>
@@ -292,11 +292,8 @@ export default function PatientCheckInForm({
       <GlassCard className="space-y-8 p-8">
         <div className="flex items-center justify-between pb-6 border-b border-gray-100">
           <div>
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <span>OPD Details</span>
-              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-full bg-primary/10 text-primary">
-                Step 2 of 2
-              </span>
+            <h2 className="text-xl font-bold text-foreground">
+              OPD Details
             </h2>
             <p className="text-sm text-gray-500 mt-1">Provide details for Gemini AI triage & token generation</p>
           </div>
@@ -306,11 +303,10 @@ export default function PatientCheckInForm({
             <button
               type="button"
               onClick={() => setIntakeMode("form")}
-              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 ${
-                intakeMode === "form"
+              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 ${intakeMode === "form"
                   ? "bg-white text-foreground shadow-sm font-semibold border border-gray-100"
                   : "text-gray-500 hover:text-foreground"
-              }`}
+                }`}
             >
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Manual Form</span>
@@ -321,11 +317,10 @@ export default function PatientCheckInForm({
                 setIntakeMode("voice");
                 setShowVoiceCallModal(true);
               }}
-              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 ${
-                intakeMode === "voice"
+              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 ${intakeMode === "voice"
                   ? "bg-primary text-white shadow-sm font-semibold"
                   : "text-primary hover:bg-primary/5"
-              }`}
+                }`}
             >
               <Bot className="w-4 h-4" />
               <span className="hidden sm:inline">AI Chat</span>
@@ -361,8 +356,8 @@ export default function PatientCheckInForm({
 
         {/* Form Intake View */}
         <form onSubmit={handleSubmitCheckIn} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="md:col-span-6">
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <User className="w-4 h-4 text-gray-400" />
                 Patient Full Name *
@@ -377,34 +372,32 @@ export default function PatientCheckInForm({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  Age
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 42"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
-              </div>
+            <div className="md:col-span-3">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Age
+              </label>
+              <input
+                type="number"
+                placeholder="e.g. 42"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                  Gender
-                </label>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
+            <div className="md:col-span-3">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                Gender
+              </label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
+              >
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
           </div>
 
@@ -466,11 +459,10 @@ export default function PatientCheckInForm({
 
           {geminiResult && !isValidatingGemini && (
             <div
-              className={`p-5 rounded-2xl border text-sm space-y-2 ${
-                geminiResult.isValid
+              className={`p-5 rounded-2xl border text-sm space-y-2 ${geminiResult.isValid
                   ? "bg-emerald-50 border-emerald-100 text-emerald-900"
                   : "bg-red-50 border-red-100 text-red-900"
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between font-bold">
                 <span className="flex items-center gap-2">
@@ -478,13 +470,12 @@ export default function PatientCheckInForm({
                   Gemini AI Verification
                 </span>
                 <span
-                  className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
-                    geminiResult.triageLevel === "express"
+                  className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${geminiResult.triageLevel === "express"
                       ? "bg-red-100 text-red-700"
                       : geminiResult.triageLevel === "priority"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-emerald-100 text-emerald-800"
-                  }`}
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-emerald-100 text-emerald-800"
+                    }`}
                 >
                   Triage: {geminiResult.triageLevel || "routine"}
                 </span>

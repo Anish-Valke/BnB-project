@@ -12,10 +12,21 @@ interface VoiceBotCallModalProps {
   onCancel: () => void;
 }
 
+function getVoiceBotGreeting(): string {
+  const hour = new Date().getHours();
+  let greeting = "Good evening";
+  if (hour >= 5 && hour < 12) {
+    greeting = "Good morning";
+  } else if (hour >= 12 && hour < 17) {
+    greeting = "Good afternoon";
+  }
+  return `Namaste! ${greeting}. I am your ArogyaFlow AI Voice Assistant. May I know your full name?`;
+}
+
 const BOT_STEPS = [
   {
     key: "patient_name",
-    question: "Namaste! I am your ArogyaFlow AI Voice Assistant. May I know your full name?",
+    question: "May I know your full name?",
     placeholder: "e.g. Ramesh Kumar",
     quickAnswers: ["Ramesh Kumar", "Priya Sharma", "Amit Patel"],
   },
@@ -50,8 +61,8 @@ export default function VoiceBotCallModal({
   onCancel,
 }: VoiceBotCallModalProps) {
   const [stepIndex, setStepIndex] = useState(0);
-  const [transcript, setTranscript] = useState<Array<{ sender: "bot" | "user"; text: string }>>([
-    { sender: "bot", text: BOT_STEPS[0].question },
+  const [transcript, setTranscript] = useState<Array<{ sender: "bot" | "user"; text: string }>>(() => [
+    { sender: "bot", text: getVoiceBotGreeting() },
   ]);
   const [currentInput, setCurrentInput] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -73,7 +84,7 @@ export default function VoiceBotCallModal({
   };
 
   useEffect(() => {
-    speakQuestion(BOT_STEPS[0].question);
+    speakQuestion(getVoiceBotGreeting());
     return () => {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
@@ -231,23 +242,23 @@ export default function VoiceBotCallModal({
   const activeQuestion = BOT_STEPS[stepIndex];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="w-full max-w-lg bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Call Top Header */}
-        <div className="bg-gradient-to-r from-teal-950 via-zinc-900 to-indigo-950 p-4 border-b border-zinc-800 flex items-center justify-between">
+        <div className="bg-slate-50/90 p-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30">
+            <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
               <Bot className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h3 className="font-semibold text-white text-sm flex items-center gap-2">
+              <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
                 ArogyaFlow Voice Assistant
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
               </h3>
-              <p className="text-[10px] text-teal-400 font-mono">
+              <p className="text-[10px] text-primary font-mono font-semibold">
                 Active Call • {phone} • Step {Math.min(stepIndex + 1, BOT_STEPS.length)} of {BOT_STEPS.length}
               </p>
             </div>
@@ -256,7 +267,7 @@ export default function VoiceBotCallModal({
           <button
             onClick={() => setIsMuted(!isMuted)}
             className={`p-2 rounded-xl border text-xs flex items-center gap-1 transition-all ${
-              isMuted ? "bg-red-500/20 border-red-500/40 text-red-300" : "bg-zinc-800 border-zinc-700 text-zinc-300"
+              isMuted ? "bg-red-50 border-red-200 text-red-600 font-semibold" : "bg-white border-gray-200 text-gray-700 hover:bg-slate-50 shadow-sm"
             }`}
           >
             <Volume2 className="w-4 h-4" />
@@ -265,11 +276,11 @@ export default function VoiceBotCallModal({
         </div>
 
         {/* Audio Soundwaves Visualizer */}
-        <div className="h-16 bg-zinc-950 border-b border-zinc-800/80 flex items-center justify-center gap-1.5 px-4">
+        <div className="h-14 bg-slate-50/60 border-b border-gray-100 flex items-center justify-center gap-1.5 px-4">
           {[40, 70, 30, 90, 50, 80, 45, 100, 60, 30, 80, 50, 90, 40].map((h, i) => (
             <div
               key={i}
-              className="w-1 bg-gradient-to-t from-teal-500 to-indigo-500 rounded-full animate-pulse"
+              className="w-1 bg-gradient-to-t from-primary to-indigo-600 rounded-full animate-pulse"
               style={{
                 height: `${h}%`,
                 animationDelay: `${i * 100}ms`,
@@ -279,15 +290,15 @@ export default function VoiceBotCallModal({
         </div>
 
         {/* Live Conversation Transcript */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[220px]">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[220px] bg-slate-50/30">
           {transcript.map((msg, idx) => (
             <div
               key={idx}
               className={`flex items-start gap-2.5 ${msg.sender === "user" ? "flex-row-reverse" : ""}`}
             >
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-medium ${
-                  msg.sender === "bot" ? "bg-teal-900 text-teal-300" : "bg-indigo-900 text-indigo-300"
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 font-bold ${
+                  msg.sender === "bot" ? "bg-primary/10 text-primary border border-primary/20" : "bg-indigo-100 text-indigo-700"
                 }`}
               >
                 {msg.sender === "bot" ? "AI" : "You"}
@@ -295,8 +306,8 @@ export default function VoiceBotCallModal({
               <div
                 className={`max-w-[80%] p-3 rounded-2xl text-xs leading-relaxed ${
                   msg.sender === "bot"
-                    ? "bg-zinc-800/90 text-zinc-100 border border-zinc-700/60 rounded-tl-none"
-                    : "bg-teal-600 text-white rounded-tr-none"
+                    ? "bg-white text-foreground border border-gray-100 rounded-tl-none shadow-sm font-normal"
+                    : "bg-primary text-white rounded-tr-none shadow-md shadow-primary/20 font-medium"
                 }`}
               >
                 {msg.text}
@@ -307,14 +318,14 @@ export default function VoiceBotCallModal({
 
         {/* Active Input Controls */}
         {activeQuestion && (
-          <div className="p-4 bg-zinc-950 border-t border-zinc-800 space-y-3">
+          <div className="p-4 bg-white border-t border-gray-100 space-y-3 shadow-sm">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-              <span className="text-[10px] text-zinc-500 uppercase font-semibold shrink-0">Quick Answers:</span>
+              <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider shrink-0">Quick Answers:</span>
               {activeQuestion.quickAnswers.map((answer, i) => (
                 <button
                   key={i}
                   onClick={() => handleNextStep(answer)}
-                  className="px-2.5 py-1 rounded-full bg-zinc-800 hover:bg-zinc-700 text-teal-300 border border-zinc-700 text-[11px] font-medium shrink-0 transition-all"
+                  className="px-2.5 py-1 rounded-full bg-primary/5 hover:bg-primary/15 text-primary border border-primary/15 text-[11px] font-semibold shrink-0 transition-all active:scale-95"
                 >
                   {answer}
                 </button>
@@ -327,8 +338,8 @@ export default function VoiceBotCallModal({
                 onClick={handleVoiceListen}
                 className={`p-3 rounded-2xl border transition-all ${
                   isListening
-                    ? "bg-red-600 text-white border-red-500 animate-pulse"
-                    : "bg-zinc-800 hover:bg-zinc-700 border-zinc-700 text-teal-400"
+                    ? "bg-red-500 text-white border-red-500 animate-pulse shadow-md shadow-red-500/20"
+                    : "bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary font-semibold"
                 }`}
                 title="Speak Answer"
               >
@@ -343,13 +354,13 @@ export default function VoiceBotCallModal({
                   if (e.key === "Enter") handleNextStep(currentInput);
                 }}
                 placeholder={activeQuestion.placeholder}
-                className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="flex-1 px-4 py-3 bg-slate-50 border border-gray-200 rounded-2xl text-xs text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all"
               />
 
               <button
                 onClick={() => handleNextStep(currentInput)}
                 disabled={!currentInput.trim()}
-                className="p-3 rounded-2xl bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white transition-all shadow-md shadow-teal-600/20"
+                className="p-3 rounded-2xl bg-primary hover:bg-primary/90 disabled:opacity-40 text-white transition-all shadow-md shadow-primary/25"
               >
                 <Send className="w-5 h-5" />
               </button>
@@ -358,15 +369,15 @@ export default function VoiceBotCallModal({
         )}
 
         {/* Call Footer End Call */}
-        <div className="p-3 bg-zinc-950 border-t border-zinc-900 flex items-center justify-between">
-          <span className="text-[10px] text-zinc-500 flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-teal-400" />
+        <div className="p-3 bg-slate-50 border-t border-gray-100 flex items-center justify-between">
+          <span className="text-[10px] text-gray-500 flex items-center gap-1 font-medium">
+            <Sparkles className="w-3 h-3 text-primary" />
             AI Voice Recording & Data Extraction Active
           </span>
 
           <button
             onClick={onCancel}
-            className="px-3 py-1.5 rounded-xl bg-red-950/60 hover:bg-red-900/80 border border-red-800 text-red-400 font-medium text-xs flex items-center gap-1.5 transition-all"
+            className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-sm"
           >
             <PhoneOff className="w-3.5 h-3.5" />
             <span>End Call</span>

@@ -20,10 +20,29 @@ interface ChatMessage {
   copied?: boolean;
 }
 
+function getInitialGreeting(lang: "en" | "hi"): string {
+  const hour = new Date().getHours();
+  let greetingEn = "Good evening";
+  let greetingHi = "शुभ संध्या";
+
+  if (hour >= 5 && hour < 12) {
+    greetingEn = "Good morning";
+    greetingHi = "शुभ प्रभात";
+  } else if (hour >= 12 && hour < 17) {
+    greetingEn = "Good afternoon";
+    greetingHi = "शुभ दोपहर";
+  }
+
+  if (lang === "hi") {
+    return `नमस्ते! ${greetingHi}। आपका शुभ नाम क्या है?`;
+  }
+  return `Hey! ${greetingEn}. What is your full name?`;
+}
+
 const STEPS_EN = [
   {
     key: "patient_name",
-    question: "Hey! Good morning. What is your full name?",
+    question: "What is your full name?",
     placeholder: "e.g. Aniket Sharma",
     quickAnswers: ["Aniket Sharma", "Ramesh Kumar", "Priya Verma"],
   },
@@ -54,7 +73,7 @@ const STEPS_EN = [
 const STEPS_HI = [
   {
     key: "patient_name",
-    question: "नमस्ते! आपका शुभ नाम क्या है?",
+    question: "आपका शुभ नाम क्या है?",
     placeholder: "उदा. अनिकेत शर्मा",
     quickAnswers: ["अनिकेत शर्मा", "रमेश कुमार", "प्रिया वर्मा"],
   },
@@ -103,11 +122,11 @@ export default function AiChatModal({
   const steps = language === "hi" ? STEPS_HI : STEPS_EN;
   const currentStep = steps[stepIndex];
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       id: "1",
       sender: "bot",
-      text: steps[0].question,
+      text: getInitialGreeting("en"),
     },
   ]);
 
@@ -435,18 +454,18 @@ export default function AiChatModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4">
-      <div className="w-full max-w-xl bg-black border border-zinc-800/80 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+      <div className="w-full max-w-xl bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[90vh]">
         {/* Header Bar */}
-        <div className="bg-zinc-950 px-6 py-4 border-b border-zinc-900 flex items-center justify-between">
+        <div className="bg-slate-50/90 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-semibold text-white text-sm flex items-center gap-2">
+              <h3 className="font-bold text-foreground text-sm flex items-center gap-2">
                 ArogyaFlow AI Chat
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-semibold font-mono">
                   Whisper AI
                 </span>
               </h3>
@@ -459,12 +478,12 @@ export default function AiChatModal({
               onClick={() => {
                 const newLang = language === "en" ? "hi" : "en";
                 setLanguage(newLang);
-                setMessages([{ id: "1", sender: "bot", text: (newLang === "hi" ? STEPS_HI : STEPS_EN)[0].question }]);
+                setMessages([{ id: "1", sender: "bot", text: getInitialGreeting(newLang) }]);
                 setStepIndex(0);
               }}
-              className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-slate-50 flex items-center gap-1.5 transition-all shadow-sm"
             >
-              <Globe className="w-3.5 h-3.5 text-blue-400" />
+              <Globe className="w-3.5 h-3.5 text-primary" />
               <span>{language === "en" ? "English 🇬🇧" : "हिंदी 🇮🇳"}</span>
             </button>
 
@@ -473,8 +492,8 @@ export default function AiChatModal({
               onClick={() => setIsVoiceEnabled(!isVoiceEnabled)}
               className={`p-2 rounded-xl border text-xs transition-all ${
                 isVoiceEnabled
-                  ? "bg-blue-600/20 border-blue-500/40 text-blue-400"
-                  : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                  ? "bg-primary/10 border-primary/30 text-primary"
+                  : "bg-white border-gray-200 text-gray-400 hover:bg-slate-50"
               }`}
               title="Voice Audio Output"
             >
@@ -483,7 +502,7 @@ export default function AiChatModal({
 
             <button
               onClick={onCancel}
-              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all"
+              className="p-2 rounded-xl bg-white border border-gray-200 hover:bg-slate-100 text-gray-500 hover:text-foreground transition-all shadow-sm"
             >
               <X className="w-4 h-4" />
             </button>
@@ -491,41 +510,41 @@ export default function AiChatModal({
         </div>
 
         {/* Timestamp Header */}
-        <div className="text-center py-2 text-[11px] text-zinc-500 font-medium">
-          Today 11:02 AM
+        <div className="text-center py-2 text-[11px] text-gray-400 font-medium tracking-wide bg-slate-50/50 border-b border-gray-100">
+          Today {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
 
         {/* ChatGPT Style Message Feed */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 bg-slate-50/30">
           {messages.map((msg) => (
             <div key={msg.id} className="space-y-2">
               {msg.sender === "user" ? (
                 <div className="flex justify-end">
-                  <div className="bg-blue-600 text-white px-5 py-2.5 rounded-3xl text-sm font-medium max-w-[80%] shadow-lg shadow-blue-600/10">
+                  <div className="bg-primary text-white px-5 py-2.5 rounded-3xl rounded-tr-sm text-sm font-medium max-w-[80%] shadow-md shadow-primary/20">
                     {msg.text}
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-start space-y-2 max-w-[85%]">
-                  <div className="text-white text-sm leading-relaxed font-normal">
+                  <div className="bg-white border border-gray-100 text-foreground p-4 rounded-3xl rounded-tl-sm text-sm leading-relaxed font-normal shadow-sm">
                     {msg.text}
                   </div>
-                  {/* ChatGPT Action Bar Icons */}
-                  <div className="flex items-center gap-3 text-zinc-500 text-xs pt-1">
+                  {/* Action Bar Icons */}
+                  <div className="flex items-center gap-3 text-gray-400 text-xs pt-1">
                     <button
                       onClick={() => handleCopyText(msg.id, msg.text)}
-                      className="hover:text-zinc-300 transition-colors flex items-center gap-1"
+                      className="hover:text-gray-600 transition-colors flex items-center gap-1"
                       title="Copy"
                     >
-                      {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
-                    <button className="hover:text-zinc-300 transition-colors" title="Good Response">
+                    <button className="hover:text-gray-600 transition-colors" title="Good Response">
                       <ThumbsUp className="w-3.5 h-3.5" />
                     </button>
-                    <button className="hover:text-zinc-300 transition-colors" title="Bad Response">
+                    <button className="hover:text-gray-600 transition-colors" title="Bad Response">
                       <ThumbsDown className="w-3.5 h-3.5" />
                     </button>
-                    <button className="hover:text-zinc-300 transition-colors" title="More">
+                    <button className="hover:text-gray-600 transition-colors" title="More">
                       <MoreHorizontal className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -538,13 +557,13 @@ export default function AiChatModal({
 
         {/* Quick Answer Chips */}
         {currentStep && (
-          <div className="px-6 py-2 border-t border-zinc-900 bg-zinc-950/50 flex items-center gap-2 overflow-x-auto scrollbar-none">
-            <span className="text-[10px] text-zinc-500 uppercase font-semibold shrink-0">Options:</span>
+          <div className="px-6 py-3 border-t border-gray-100 bg-white flex items-center gap-2 overflow-x-auto scrollbar-none">
+            <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider shrink-0">Options:</span>
             {currentStep.quickAnswers.map((ans, i) => (
               <button
                 key={i}
                 onClick={() => handleSendMessage(ans)}
-                className="px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-blue-400 text-xs font-medium shrink-0 transition-all"
+                className="px-3.5 py-1.5 rounded-full bg-primary/5 hover:bg-primary/15 border border-primary/15 text-primary text-xs font-semibold shrink-0 transition-all active:scale-95"
               >
                 {ans}
               </button>
@@ -553,7 +572,7 @@ export default function AiChatModal({
         )}
 
         {/* Input Bar & Glowing ChatGPT Voice Orb at Bottom */}
-        <div className="p-6 bg-black border-t border-zinc-900 flex flex-col items-center gap-4">
+        <div className="p-6 bg-white border-t border-gray-100 flex flex-col items-center gap-4 shadow-lg">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -566,12 +585,12 @@ export default function AiChatModal({
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               placeholder={currentStep ? currentStep.placeholder : "Type message or use voice..."}
-              className="flex-1 px-5 py-3 bg-zinc-900 border border-zinc-800 rounded-full text-xs text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-5 py-3 bg-slate-50 border border-gray-200 rounded-full text-xs text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all"
             />
             <button
               type="submit"
               disabled={!currentInput.trim()}
-              className="p-3 rounded-full bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white transition-all shadow-lg shadow-blue-600/20"
+              className="p-3 rounded-full bg-primary hover:bg-primary/90 disabled:opacity-40 text-white transition-all shadow-md shadow-primary/25"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -579,7 +598,7 @@ export default function AiChatModal({
 
           {/* Live Recording Soundwave Indicator Banner */}
           {isRecording && (
-            <div className="w-full py-2 px-4 rounded-2xl bg-red-950/80 border border-red-800 text-red-300 text-xs font-semibold flex items-center justify-between animate-pulse">
+            <div className="w-full py-2.5 px-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center justify-between animate-pulse">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
                 <span>{language === "hi" ? "🔴 रिकॉर्डिंग चालू है... बोलिए" : "🔴 Recording Active... Speak Now"}</span>
@@ -596,15 +615,15 @@ export default function AiChatModal({
             </div>
           )}
 
-          {/* ChatGPT Glowing Pulsing Voice Orb (Matching Screenshot) */}
+          {/* ChatGPT Glowing Pulsing Voice Orb (Matching App Primary Theme) */}
           <div className="flex flex-col items-center space-y-2">
             <button
               type="button"
               onClick={handleWhisperVoiceInput}
               className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 ${
                 isRecording
-                  ? "bg-gradient-to-tr from-red-500 via-pink-600 to-red-500 shadow-[0_0_50px_rgba(239,68,68,0.9)] animate-pulse scale-110"
-                  : "bg-gradient-to-tr from-blue-500 via-indigo-500 to-teal-400 shadow-[0_0_35px_rgba(59,130,246,0.6)] hover:scale-105"
+                  ? "bg-gradient-to-tr from-red-500 via-pink-600 to-red-500 shadow-[0_0_40px_rgba(239,68,68,0.6)] animate-pulse scale-110"
+                  : "bg-gradient-to-tr from-primary via-indigo-600 to-purple-600 shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:scale-105"
               }`}
               title="Click to speak (Whisper AI Voice)"
             >
@@ -612,9 +631,9 @@ export default function AiChatModal({
                 {isRecording ? <MicOff className="w-6 h-6 animate-pulse" /> : <Mic className="w-6 h-6" />}
               </div>
             </button>
-            <span className="text-[11px] text-zinc-300 font-semibold tracking-wide flex items-center gap-1.5">
+            <span className="text-[11px] text-gray-600 font-semibold tracking-wide flex items-center gap-1.5">
               {isRecording ? (
-                <span className="text-red-400 font-bold">Tap Orb to Stop & Send Voice</span>
+                <span className="text-red-600 font-bold">Tap Orb to Stop & Send Voice</span>
               ) : (
                 <span>{micStatusMsg || (language === "hi" ? "आवाज से बोलने के लिए गोला दबाएं" : "Tap Orb to Speak with Whisper AI")}</span>
               )}

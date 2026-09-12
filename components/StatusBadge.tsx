@@ -13,7 +13,7 @@ export default function StatusBadge({
   
   const config = {
     Relax: {
-      bg: "bg-blue-50 text-blue-700 border-blue-200",
+      bg: "bg-emerald-50 text-emerald-800 border-emerald-200",
       icon: <Clock className="w-4 h-4" />,
     },
     Buffer: {

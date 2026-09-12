@@ -115,7 +115,7 @@ export async function sendFast2SMSOtp(phoneNumber: string): Promise<{
       };
     }
   } catch (err: any) {
-    console.error("[Fast2SMS Network Error]:", err.message);
+    console.error("[Fast2SMS Network Error]:", err?.message || err);
     return {
       success: false,
       message: "Unable to send OTP. Please try again later.",

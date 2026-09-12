@@ -165,15 +165,28 @@ export default function PatientDashboardPage() {
   // Unauthenticated Login Screen
   if (!phone) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center space-y-4">
-            <div className="inline-flex p-4 bg-primary/10 text-primary rounded-[2rem] mb-2 shadow-inner">
-              <Stethoscope className="w-10 h-10" />
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center p-4 selection:bg-emerald-500/20 selection:text-emerald-800">
+        <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-500">
+          <div className="text-center space-y-4 flex flex-col items-center">
+            {/* Stethoscope Icon Badge */}
+            <div className="relative group p-4 bg-emerald-600 text-white rounded-2xl shadow-xl shadow-emerald-600/25 mb-2">
+              <Stethoscope className="w-8 h-8" />
+              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
+              </span>
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-primary">ArogyaFlow Patient</h1>
-            <p className="text-sm text-gray-500">
-              Verify mobile number with Fast2SMS OTP to access your patient dashboard.
+
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold tracking-wide shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+              <span>ArogyaFlow OTP Verification</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
+              ArogyaFlow Patient
+            </h1>
+            <p className="text-sm text-slate-600 font-medium max-w-sm leading-relaxed">
+              Verify your mobile number with OTP code to access your OPD token & patient dashboard.
             </p>
           </div>
 
@@ -203,32 +216,22 @@ export default function PatientDashboardPage() {
 
       {/* LEFT SIDEBAR NAVIGATION */}
       <aside
-        className={`fixed md:sticky top-0 inset-y-0 left-0 z-40 w-64 bg-surface border-r border-gray-200/50 p-6 flex flex-col justify-between transition-transform duration-300 shadow-xl md:shadow-none h-screen ${
-          mobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
+        className={`fixed md:sticky top-0 inset-y-0 left-0 z-40 w-64 bg-surface border-r border-gray-200/50 p-6 flex flex-col justify-between transition-transform duration-300 shadow-xl md:shadow-none h-screen ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          }`}
       >
         <div className="space-y-8">
           {/* Logo */}
           <div className="flex items-center gap-3 pb-6 border-b border-gray-200/50">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <Activity className="w-6 h-6" />
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="ArogyaFlow Logo"
+              className="w-10 h-10 rounded-2xl shadow-md shadow-emerald-600/25 object-cover border border-emerald-100"
+            />
             <div>
-              <h2 className="font-black text-lg text-primary">ArogyaFlow</h2>
-              <span className="text-xs text-secondary font-medium">Patient Portal</span>
+              <h2 className="font-black text-lg text-emerald-800">ArogyaFlow</h2>
+              <span className="text-xs text-emerald-600 font-semibold">Patient Portal</span>
             </div>
           </div>
-
-          {/* Patient Quick Profile Box */}
-          <GlassCard className="p-3 bg-white flex items-center gap-3 shadow-sm border-gray-100">
-            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
-              <User className="w-5 h-5" />
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-bold text-foreground truncate">{patient?.name || "Ramesh Kumar"}</p>
-              <p className="text-xs text-gray-500 font-mono">{phone}</p>
-            </div>
-          </GlassCard>
 
           {/* Navigation Items */}
           <nav className="space-y-2 font-medium">
@@ -244,11 +247,10 @@ export default function PatientDashboardPage() {
                   setActiveTab(item.id as SidebarTab);
                   setMobileSidebarOpen(false);
                 }}
-                className={`w-full px-4 py-3 rounded-2xl flex items-center justify-between transition-all group ${
-                  activeTab === item.id
-                    ? "bg-primary text-white shadow-lg shadow-primary/25 font-bold"
-                    : "text-gray-500 hover:bg-surface-hover hover:text-foreground"
-                }`}
+                className={`w-full px-4 py-3 rounded-2xl flex items-center justify-between transition-all group ${activeTab === item.id
+                  ? "bg-primary text-white shadow-lg shadow-primary/25 font-bold"
+                  : "text-gray-500 hover:bg-surface-hover hover:text-foreground"
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <item.icon className="w-5 h-5" />
@@ -262,6 +264,17 @@ export default function PatientDashboardPage() {
 
         {/* Sidebar Footer Logout */}
         <div className="pt-6 border-t border-gray-200/50 space-y-3">
+          {/* Patient Quick Profile Box - Moved Above Refresh Data */}
+          <GlassCard className="p-3 bg-white flex items-center gap-3 shadow-sm border-gray-100 mb-2">
+            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
+              <User className="w-5 h-5" />
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold text-foreground truncate">{patient?.name || "Ramesh Kumar"}</p>
+              <p className="text-xs text-gray-500 font-mono">{phone}</p>
+            </div>
+          </GlassCard>
+
           <Button
             variant="outline"
             onClick={() => fetchDashboardData(phone)}
@@ -333,7 +346,7 @@ export default function PatientDashboardPage() {
 
         {/* TAB 2: PATIENT OPD REGISTRATION FORM */}
         {activeTab === "opd-registration" && (
-          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 max-w-3xl">
+          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 w-full">
             <div className="mb-8">
               <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-xl">
@@ -398,7 +411,7 @@ export default function PatientDashboardPage() {
 
         {/* TAB 4: PATIENT PROFILE */}
         {activeTab === "profile" && (
-          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 max-w-2xl">
+          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 max-w-3xl mx-auto w-full">
             <div className="mb-8">
               <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-xl">

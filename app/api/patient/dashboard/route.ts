@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     // Check memory store fallback ONLY if DB query failed completely
     if (!activeToken && !dbActiveSuccess) {
       const memTokens = getTokensForPhone(phone);
-      const activeMem = memTokens.find((t) => t.status === "waiting" || t.status === "in-consultation");
+      const activeMem = memTokens.find((t: any) => t.status === "waiting" || t.status === "in-consultation");
       if (activeMem) {
         activeToken = activeMem;
       }
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
 
     if (prescriptions.length === 0 && !dbPresSuccess) {
       const memTokens = getTokensForPhone(phone);
-      const completedMem = memTokens.filter((t) => t.status === "completed");
+      const completedMem = memTokens.filter((t: any) => t.status === "completed");
       if (completedMem.length > 0) {
         prescriptions = completedMem.map((t: any) => ({
           id: t.id,

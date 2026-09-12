@@ -14,19 +14,19 @@ export default function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const baseStyles = "inline-flex items-center justify-center font-medium rounded-full transition-all duration-300 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles = "inline-flex items-center justify-center font-bold rounded-2xl transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-95";
   
   const variants = {
-    primary: "gradient-primary shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5",
-    secondary: "bg-secondary text-white shadow-lg shadow-secondary/30 hover:shadow-xl hover:shadow-secondary/40 hover:-translate-y-0.5",
-    outline: "border-2 border-primary text-primary hover:bg-primary/5",
-    ghost: "text-foreground hover:bg-surface-hover",
+    primary: "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:shadow-emerald-600/40 hover:-translate-y-0.5",
+    secondary: "bg-emerald-800 hover:bg-emerald-900 text-white shadow-lg shadow-emerald-800/30 hover:-translate-y-0.5",
+    outline: "border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 bg-white font-bold",
+    ghost: "text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 font-semibold",
   };
   
   const sizes = {
-    sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3 text-base",
-    lg: "px-8 py-4 text-lg",
+    sm: "px-4 py-2 text-xs",
+    md: "px-6 py-3 text-sm",
+    lg: "px-8 py-4 text-base",
   };
   
   return (

@@ -1,23 +1,27 @@
 @import "tailwindcss";
 
 @theme {
+  /* Ultra-Clean Modern Emerald & White Healthcare Theme */
   --color-background: #F8FAFC;
   --color-foreground: #0F172A;
   
-  --color-primary: #6366F1;
-  --color-primary-light: #818CF8;
-  --color-primary-dark: #4F46E5;
+  /* Primary: Bold Vibrant Emerald Green */
+  --color-primary: #059669;
+  --color-primary-light: #10B981;
+  --color-primary-dark: #047857;
   
-  --color-secondary: #8B5CF6;
-  --color-secondary-light: #A78BFA;
-  --color-secondary-dark: #7C3AED;
+  /* Secondary: Deep Forest Green */
+  --color-secondary: #047857;
+  --color-secondary-light: #059669;
+  --color-secondary-dark: #064E3B;
   
-  --color-accent: #22D3EE;
-  --color-accent-light: #67E8F9;
-  --color-accent-dark: #0891B2;
+  /* Accent: Bright Mint Green */
+  --color-accent: #10B981;
+  --color-accent-light: #A7F3D0;
+  --color-accent-dark: #047857;
   
   --color-surface: #FFFFFF;
-  --color-surface-hover: #F1F5F9;
+  --color-surface-hover: #F0FDF4;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   
@@ -26,30 +30,30 @@
   --radius-3xl: 2rem;
   --radius-4xl: 3rem;
   
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-  --shadow-glass-hover: 0 12px 48px 0 rgba(31, 38, 135, 0.12);
+  --shadow-glass: 0 10px 30px -5px rgba(5, 150, 105, 0.1);
+  --shadow-glass-hover: 0 20px 40px -5px rgba(5, 150, 105, 0.18);
 }
 
 @layer base {
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-glass;
+    @apply bg-white border border-slate-200/80 shadow-xl shadow-slate-200/50;
   }
   
   .glass-panel-hover {
-    @apply hover:bg-white/80 hover:shadow-glass-hover transition-all duration-300;
+    @apply hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-600/10 transition-all duration-300;
   }
   
   .gradient-primary {
-    @apply bg-gradient-to-br from-primary to-secondary text-white;
+    @apply bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/30 hover:bg-emerald-700 transition-all;
   }
   
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+    @apply text-emerald-700 font-black;
   }
 }

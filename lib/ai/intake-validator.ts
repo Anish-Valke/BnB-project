@@ -85,7 +85,7 @@ Response Rules:
       predictedMins: Number(parsed.predictedMins) || 8,
     };
   } catch (err: any) {
-    console.warn("[Gemini Intake Validation Fallback]:", err.message);
+    console.warn("[Gemini Intake Validation Fallback]:", err?.message || err);
     return fallbackCheck;
   }
 }

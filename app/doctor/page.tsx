@@ -14,7 +14,7 @@ export default function DoctorConsolePage() {
   const [currentServing, setCurrentServing] = useState<Token | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  
+
   const [doctorNotes, setDoctorNotes] = useState("");
   const [prescriptionText, setPrescriptionText] = useState("");
   const [patientHistory, setPatientHistory] = useState<any[]>([]);
@@ -61,7 +61,7 @@ export default function DoctorConsolePage() {
   const handleAction = async (action: "next" | "skip" | "emergency", delayMins?: number) => {
     if (actionLoading) return;
     setActionLoading(action);
-    
+
     // Optimistic UI updates
     if (action === "next" && queue.length > 0) {
       const nextToken = queue[0];
@@ -91,11 +91,11 @@ export default function DoctorConsolePage() {
         await fetchQueue();
       } else {
         console.error(`Action ${action} failed`);
-        await fetchQueue(); 
+        await fetchQueue();
       }
     } catch (err) {
       console.error(err);
-      await fetchQueue(); 
+      await fetchQueue();
     } finally {
       setActionLoading(null);
     }
@@ -116,9 +116,11 @@ export default function DoctorConsolePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                <Activity className="w-6 h-6" />
-              </div>
+              <img
+                src="/logo.jpg"
+                alt="ArogyaFlow Logo"
+                className="w-12 h-12 rounded-2xl shadow-md shadow-emerald-600/25 object-cover border border-emerald-100"
+              />
               <div>
                 <h1 className="text-xl font-black text-foreground">
                   {doctor?.name || "Dr. Anjali Sharma"}
@@ -128,7 +130,7 @@ export default function DoctorConsolePage() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-3">
               {doctor?.emergency_delay ? (
                 <div className="flex items-center space-x-2 bg-red-50 text-red-700 px-4 py-2 rounded-xl border border-red-100 font-medium text-sm">
@@ -152,10 +154,10 @@ export default function DoctorConsolePage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Left Column: Active Patient & Actions */}
           <div className="lg:col-span-7 space-y-6">
-            
+
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-black text-foreground">Consultation Room</h2>
             </div>
@@ -202,13 +204,13 @@ export default function DoctorConsolePage() {
                 isLoading={!!actionLoading}
               />
             </div>
-            
+
           </div>
 
           {/* Right Column: Waiting Queue list */}
           <div className="lg:col-span-5 space-y-6">
             <h2 className="text-2xl font-black text-foreground">Waiting Queue</h2>
-            
+
             <GlassCard className="p-0 overflow-hidden">
               <div className="bg-surface-hover px-5 py-4 border-b border-gray-100 flex justify-between items-center">
                 <h3 className="font-bold text-foreground">Next Up</h3>
@@ -216,7 +218,7 @@ export default function DoctorConsolePage() {
                   {queue.length} Total
                 </span>
               </div>
-              
+
               <div className="max-h-[800px] overflow-y-auto">
                 {queue.length > 0 ? (
                   <div className="divide-y divide-gray-100">
@@ -233,7 +235,7 @@ export default function DoctorConsolePage() {
                             </span>
                           </div>
                           <p className="text-sm text-gray-500 truncate">{item.chief_complaint}</p>
-                          
+
                           {/* Triage badges */}
                           <div className="mt-2 flex gap-2">
                             {item.triage_level === "priority" && (
@@ -260,7 +262,7 @@ export default function DoctorConsolePage() {
               </div>
             </GlassCard>
           </div>
-          
+
         </div>
       </main>
     </div>

@@ -86,7 +86,7 @@ export async function seedDatabase() {
       console.log("✅ Seeded demo patients into `patients` table.");
     }
   } catch (err: any) {
-    console.warn("Notice seeding patients table:", err.message);
+    console.warn("Notice seeding patients table:", err?.message || err);
   }
 
   // 4. Insert 15 Deterministic Tokens (#61 - #75)
@@ -252,7 +252,7 @@ export async function seedDatabase() {
 
   if (tokensErr && (tokensErr.message.includes("patient_phone") || tokensErr.code === "PGRST204")) {
     // Retry without patient_phone column if remote schema cache hasn't updated yet
-    const retryTokens = seedTokens.map(({ patient_phone, ...rest }) => rest);
+    const retryTokens = seedTokens.map(({ ...rest }) => rest);
     const retryRes = await supabase.from("tokens").insert(retryTokens).select();
     insertedTokens = retryRes.data;
     tokensErr = retryRes.error;

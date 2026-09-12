@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Phone, Lock, CheckCircle2, ShieldCheck, ArrowRight, RefreshCw, AlertCircle } from "lucide-react";
 import GlassCard from "./ui/GlassCard";
-import Button from "./ui/Button";
 
 interface PhoneOtpModalProps {
   onVerified: (phoneNumber: string) => void;
@@ -99,48 +98,48 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
   };
 
   return (
-    <GlassCard className="w-full max-w-md mx-auto">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+    <GlassCard className="w-full max-w-md mx-auto bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 rounded-3xl">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-semibold shadow-inner">
+          <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-md shadow-emerald-600/30">
             <Phone className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-zinc-900 dark:text-white text-base">
-              Fast2SMS Mobile Login
+            <h3 className="font-extrabold text-slate-900 text-base">
+              ArogyaFlow Mobile Login
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-slate-500 font-medium">
               Verify mobile number for token & notifications
             </p>
           </div>
         </div>
-        <span className="px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase rounded-full bg-primary/10 text-primary">
-          Fast2SMS API
+        <span className="px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm">
+          OTP SECURE
         </span>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
           <span>{error}</span>
         </div>
       )}
 
       {infoMessage && (
-        <div className="mb-4 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-500" />
+        <div className="mb-5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+          <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-600" />
           <span>{infoMessage}</span>
         </div>
       )}
 
       {step === "phone" && (
-        <form onSubmit={handleSendOtp} className="space-y-4">
+        <form onSubmit={handleSendOtp} className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
               Mobile Phone Number
             </label>
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-400">
+            <div className="relative flex items-center">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-xl">
                 +91
               </span>
               <input
@@ -149,104 +148,100 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
                 placeholder="9876543210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                className="w-full pl-12 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-sm font-medium text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                className="w-full pl-16 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-base font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:bg-white focus:border-emerald-600 transition-all shadow-inner"
                 required
               />
             </div>
           </div>
 
-          <Button
+          <button
             type="submit"
             disabled={loading || phone.length < 10}
-            className="w-full"
+            className="w-full py-4 text-sm font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:shadow-emerald-600/40 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin text-white" />
             ) : (
               <>
-                <span className="mr-2">Send OTP via Fast2SMS</span>
+                <span>Send Verification OTP</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
-          </Button>
+          </button>
         </form>
       )}
 
       {step === "otp" && (
-        <form onSubmit={handleVerifyOtp} className="space-y-4">
+        <form onSubmit={handleVerifyOtp} className="space-y-5 animate-in fade-in duration-300">
           <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">
                 Enter 6-Digit OTP Code
               </label>
               <button
                 type="button"
                 onClick={() => setStep("phone")}
-                className="text-xs text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                className="text-xs text-emerald-700 hover:underline font-bold"
               >
                 Change Number
               </button>
             </div>
             <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 maxLength={6}
                 placeholder="123456"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-center font-mono text-lg tracking-widest text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all"
+                className="w-full pl-10 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-2xl text-center font-mono text-xl font-bold tracking-widest text-slate-900 placeholder-slate-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:bg-white focus:border-emerald-600 transition-all shadow-inner"
                 required
               />
             </div>
           </div>
 
           {otpForDev && (
-            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs text-center font-mono">
-              Dev OTP Code: <strong className="text-amber-900 dark:text-amber-200">{otpForDev}</strong> (or enter 123456)
+            <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs text-center font-mono font-bold shadow-sm">
+              Dev OTP Code: <strong className="text-amber-950 underline">{otpForDev}</strong> (or enter 123456)
             </div>
           )}
 
-          <div className="flex items-center justify-between text-xs text-zinc-500">
-            <span>Resend OTP in: {timer}s</span>
+          <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
+            <span>Resend OTP in: <strong className="text-slate-800">{timer}s</strong></span>
             <button
               type="button"
               disabled={timer > 0 || loading}
               onClick={handleSendOtp}
-              className="text-teal-600 dark:text-teal-400 disabled:opacity-40 font-medium hover:underline"
+              className="text-emerald-700 disabled:opacity-40 font-bold hover:underline"
             >
               Resend Code
             </button>
           </div>
 
-          <Button
+          <button
             type="submit"
             disabled={loading || otp.length < 6}
-            className="w-full"
+            className="w-full py-4 text-sm font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:shadow-emerald-600/40 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin text-white" />
             ) : (
               <>
-                <ShieldCheck className="w-4 h-4 mr-2" />
-                <span>Verify OTP & Continue</span>
+                <span>Verify OTP & Login</span>
+                <CheckCircle2 className="w-4 h-4" />
               </>
             )}
-          </Button>
+          </button>
         </form>
       )}
 
       {step === "verified" && (
-        <div className="py-6 flex flex-col items-center justify-center text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/20 animate-bounce">
-            <CheckCircle2 className="w-6 h-6" />
+        <div className="py-8 text-center space-y-3 animate-in zoom-in duration-300">
+          <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h4 className="text-base font-semibold text-foreground">
-            Mobile Verified!
-          </h4>
-          <p className="text-xs text-gray-500">
-            {phone} verified via Fast2SMS. Proceeding to intake...
-          </p>
+          <h4 className="text-lg font-black text-slate-900">Mobile Verified!</h4>
+          <p className="text-xs text-slate-500 font-medium">Redirecting to your patient dashboard...</p>
         </div>
       )}
     </GlassCard>

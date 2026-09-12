@@ -83,8 +83,23 @@ export async function POST(request: NextRequest) {
 
     // 6. Server-Side API Key resolution (GROQ_API_KEY strictly used)
     const groqApiKey = process.env.GROQ_API_KEY;
+    const isDemoMode = process.env.GROQ_DEMO_MODE === "true";
 
-    if (!groqApiKey || groqApiKey.trim() === "") {
+    if (!groqApiKey || groqApiKey.trim() === "" || groqApiKey.startsWith("your-")) {
+      if (isDemoMode) {
+        const cleanLang = (language || "").toLowerCase().slice(0, 2);
+        const demoTranscriptions: Record<string, string> = {
+          hi: "मुझे 2 दिनों से तेज बुखार और सीने में दर्द है।",
+          en: "Patient reports high fever and chest discomfort for 2 days.",
+        };
+        return NextResponse.json({
+          success: true,
+          transcription: demoTranscriptions[cleanLang] || demoTranscriptions.en,
+          language: cleanLang || "en",
+          engine: "groq-demo-fallback",
+        });
+      }
+
       return NextResponse.json(
         { success: false, error: "GROQ_API_KEY environment variable is not configured on the server" },
         { status: 500 }

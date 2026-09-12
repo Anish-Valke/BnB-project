@@ -1,4 +1,4 @@
-import { PredictWaitResult, TriageLevel } from "./types";
+import { PredictWaitResult } from "./types";
 
 export interface SafetyOverrideResult extends PredictWaitResult {
   source: "safety-override";
