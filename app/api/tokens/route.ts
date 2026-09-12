@@ -5,22 +5,11 @@ import { calculateTokenWaitTime } from "@/lib/queue-calculator";
 import { checkSafetyRules } from "@/lib/ai/safety-rules";
 import { predictWaitDuration } from "@/lib/ai/gemini";
 import { getDeterministicFallback } from "@/lib/ai/fallback";
-import { upsertPatientProfile, saveTokenForPhone } from "@/lib/patient-store";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const {
-      doctor_id,
-      patient_name,
-      patient_phone,
-      age,
-      gender,
-      prior_history,
-      chief_complaint,
-      triage_level,
-      predicted_mins,
-    } = body;
+    const { doctor_id, patient_name, chief_complaint, triage_level, predicted_mins } = body;
 
     if (!doctor_id || !patient_name || !chief_complaint) {
       return NextResponse.json(
@@ -30,19 +19,6 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = getServiceSupabase();
-
-    // Auto update/upsert patients table record & memory store if phone is provided
-    const cleanPhone = (patient_phone || "").replace(/\D/g, "");
-    if (cleanPhone && cleanPhone.length >= 10) {
-      await upsertPatientProfile({
-        phone: cleanPhone,
-        name: patient_name.trim(),
-        age: age ? Number(age) : undefined,
-        gender: gender ? String(gender) : undefined,
-        prior_history: prior_history ? String(prior_history) : undefined,
-      });
-    }
-
 
     // 1. Fetch Doctor
     const { data: doctor, error: docErr } = await supabase
@@ -99,49 +75,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 3. Create new token record with schema fallback
-    const insertPayload: any = {
-      token_number: newTokenNum,
-      doctor_id: doctor_id,
-      patient_name: patient_name,
-      patient_phone: cleanPhone || null,
-      chief_complaint: chief_complaint,
-      triage_level: finalTriageLevel,
-      predicted_mins: finalPredictedMins,
-      status: "waiting",
-    };
-
-    let { data: newToken, error: insertErr } = await supabase
+    // 3. Create new token record
+    const { data: newToken, error: insertErr } = await supabase
       .from("tokens")
-      .insert([insertPayload])
+      .insert([
+        {
+          token_number: newTokenNum,
+          doctor_id: doctor_id,
+          patient_name: patient_name,
+          chief_complaint: chief_complaint,
+          triage_level: finalTriageLevel,
+          predicted_mins: finalPredictedMins,
+          status: "waiting",
+        },
+      ])
       .select()
       .single();
 
-    // Fallback if remote Supabase schema cache does not have 'patient_phone' column yet
-    if (insertErr && (insertErr.message.includes("patient_phone") || insertErr.code === "PGRST204" || insertErr.message.includes("schema cache"))) {
-      delete insertPayload.patient_phone;
-      const retry = await supabase
-        .from("tokens")
-        .insert([insertPayload])
-        .select()
-        .single();
-      newToken = retry.data;
-      insertErr = retry.error;
+    if (insertErr) {
+      return NextResponse.json({ error: insertErr.message }, { status: 500 });
     }
-
-    if (insertErr || !newToken) {
-      return NextResponse.json({ error: insertErr?.message || "Failed to generate token" }, { status: 500 });
-    }
-
-    const tokenObj = {
-      ...newToken,
-      patient_phone: cleanPhone || newToken.patient_phone || null,
-    };
-
-    if (cleanPhone) {
-      saveTokenForPhone(cleanPhone, tokenObj);
-    }
-
 
     // 4. Calculate initial wait metrics
     const { data: allActiveTokens } = await supabase

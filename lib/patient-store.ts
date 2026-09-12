@@ -1,5 +1,6 @@
 import { getServiceSupabase } from "@/lib/supabase";
 import { PatientProfile } from "@/lib/types";
+import { parseAge } from "@/lib/age-parser";
 
 // In-memory fallback database for patient profiles
 const memoryPatients = new Map<string, PatientProfile>([
@@ -47,7 +48,7 @@ const memoryPatients = new Map<string, PatientProfile>([
 export async function upsertPatientProfile(data: {
   phone: string;
   name: string;
-  age?: number;
+  age?: number | string;
   gender?: string;
   prior_history?: string;
 }): Promise<PatientProfile> {
@@ -57,11 +58,12 @@ export async function upsertPatientProfile(data: {
   }
 
   const existingMem = memoryPatients.get(cleanPhone);
+  const parsedAgeVal = data.age !== undefined && data.age !== null ? parseAge(data.age) : null;
   const profile: PatientProfile = {
     id: existingMem?.id || `pat_${Date.now()}`,
     phone: cleanPhone,
     name: data.name.trim(),
-    age: data.age !== undefined ? Number(data.age) : existingMem?.age || 35,
+    age: parsedAgeVal !== null ? parsedAgeVal : existingMem?.age || 35,
     gender: data.gender || existingMem?.gender || "Male",
     prior_history: data.prior_history || existingMem?.prior_history || "None recorded",
     created_at: existingMem?.created_at || new Date().toISOString(),

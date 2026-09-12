@@ -15,7 +15,7 @@ export function generate6DigitOtp(): string {
 }
 
 /**
- * Sends OTP via Fast2SMS API (or falls back to dev mode if key missing)
+ * Sends OTP via Fast2SMS API (or falls back to dev mode ONLY if FAST2SMS_DEMO_MODE=true)
  */
 export async function sendFast2SMSOtp(phoneNumber: string): Promise<{
   success: boolean;
@@ -37,19 +37,29 @@ export async function sendFast2SMSOtp(phoneNumber: string): Promise<{
   otpStore.set(cleanPhone, { otp, expiresAt });
 
   const apiKey = process.env.FAST2SMS_API_KEY;
+  const isDemoMode = process.env.FAST2SMS_DEMO_MODE === "true";
 
   if (!apiKey || apiKey.trim() === "" || apiKey === "your_fast2sms_api_key") {
-    console.log(`[Fast2SMS Dev Fallback] OTP for ${cleanPhone}: ${otp}`);
-    return {
-      success: true,
-      message: `OTP sent successfully to ${cleanPhone} (Dev Mode OTP: ${otp})`,
-      isDemo: true,
-      otpForTesting: otp,
-    };
+    if (isDemoMode) {
+      console.log(`[Fast2SMS Demo Mode] OTP for ${cleanPhone}: ${otp}`);
+      return {
+        success: true,
+        message: `OTP sent successfully to ${cleanPhone} (Demo Mode OTP: ${otp})`,
+        isDemo: true,
+        otpForTesting: otp,
+      };
+    } else {
+      console.warn("[Fast2SMS Error]: FAST2SMS_API_KEY is not configured and FAST2SMS_DEMO_MODE is not active.");
+      return {
+        success: false,
+        message: "Unable to send OTP. SMS service is not configured.",
+        isDemo: false,
+      };
+    }
   }
 
   try {
-    const response = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+    let response = await fetch("https://www.fast2sms.com/dev/bulkV2", {
       method: "POST",
       headers: {
         authorization: apiKey.trim(),
@@ -62,7 +72,27 @@ export async function sendFast2SMSOtp(phoneNumber: string): Promise<{
       }),
     });
 
-    const data = await response.json();
+    let data = await response.json();
+
+    // Fast2SMS status 996 indicates 'otp' route requires website verification.
+    // Fall back to Fast2SMS 'q' (Quick SMS) route which sends instantly without verification.
+    if (data.status_code === 996 || data.return === false) {
+      console.warn("[Fast2SMS OTP route fallback to Quick SMS]:", data.message);
+      response = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+        method: "POST",
+        headers: {
+          authorization: apiKey.trim(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          route: "q",
+          message: `Your BnB Health verification code is: ${otp}`,
+          flash: "0",
+          numbers: cleanPhone,
+        }),
+      });
+      data = await response.json();
+    }
 
     if (data.return === true || data.status_code === 200) {
       return {
@@ -71,21 +101,36 @@ export async function sendFast2SMSOtp(phoneNumber: string): Promise<{
         isDemo: false,
       };
     } else {
-      console.warn("[Fast2SMS API Response Notice]:", data);
+      console.error("[Fast2SMS API Failure]:", data);
+      if (isDemoMode) {
+        console.log(`[Fast2SMS Demo Fallback] OTP for ${cleanPhone}: ${otp}`);
+        return {
+          success: true,
+          message: `Fast2SMS API failed, but Demo Mode is active. OTP: ${otp}`,
+          isDemo: true,
+          otpForTesting: otp,
+        };
+      }
+      return {
+        success: false,
+        message: "Unable to send OTP. Please try again.",
+        isDemo: false,
+      };
+    }
+  } catch (err: any) {
+    console.error("[Fast2SMS Network Error]:", err.message);
+    if (isDemoMode) {
       return {
         success: true,
-        message: `OTP generated (Dev fallback used: ${otp})`,
+        message: `Network error, but Demo Mode is active. OTP: ${otp}`,
         isDemo: true,
         otpForTesting: otp,
       };
     }
-  } catch (err: any) {
-    console.error("[Fast2SMS API Error]:", err.message);
     return {
-      success: true,
-      message: `OTP generated (Dev fallback used: ${otp})`,
-      isDemo: true,
-      otpForTesting: otp,
+      success: false,
+      message: "Unable to send OTP. Please try again later.",
+      isDemo: false,
     };
   }
 }
@@ -99,11 +144,12 @@ export function verifyFast2SMSOtp(phoneNumber: string, inputOtp: string): {
 } {
   const cleanPhone = phoneNumber.replace(/\D/g, "");
   const entry = otpStore.get(cleanPhone);
+  const isDemoMode = process.env.FAST2SMS_DEMO_MODE === "true";
 
-  // Universal master OTP for easy testing
-  if (inputOtp === "123456" || inputOtp === "999999") {
+  // Master OTP codes are ONLY permitted when FAST2SMS_DEMO_MODE=true
+  if (isDemoMode && (inputOtp === "123456" || inputOtp === "999999")) {
     otpStore.delete(cleanPhone);
-    return { valid: true, message: "OTP verified successfully (Master Test Code)." };
+    return { valid: true, message: "OTP verified successfully (Demo Master Test Code)." };
   }
 
   if (!entry) {
