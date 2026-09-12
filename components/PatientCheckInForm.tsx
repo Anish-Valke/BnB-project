@@ -22,6 +22,7 @@ import PhoneOtpModal from "./PhoneOtpModal";
 import AiChatModal from "./AiChatModal";
 import { Doctor, LocationVerification, PatientIntakeData, GeminiValidationResult } from "@/lib/types";
 import { getPatientPhoneSession, setPatientPhoneSession } from "@/lib/patient-session";
+import { parseAge } from "@/lib/age-parser";
 
 interface PatientCheckInFormProps {
   initialDoctors?: Doctor[];
@@ -182,10 +183,16 @@ export default function PatientCheckInForm({
       return;
     }
 
+    const parsedAge = age ? parseAge(age) : null;
+    if (age && parsedAge === null) {
+      setErrorMsg("Please enter a valid age between 0 and 120 (e.g. 35).");
+      return;
+    }
+
     const payload: PatientIntakeData = {
       patient_name: patientName.trim(),
       phone: verifiedPhone || "9876543210",
-      age: age ? Number(age) : 35,
+      age: parsedAge !== null ? parsedAge : 35,
       gender,
       doctor_id: selectedDoctorId,
       chief_complaint: chiefComplaint.trim(),

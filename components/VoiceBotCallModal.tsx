@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PhoneCall, Mic, MicOff, Volume2, CheckCircle2, PhoneOff, Sparkles, Send, Bot } from "lucide-react";
 import { PatientIntakeData } from "@/lib/types";
+import { parseAge } from "@/lib/age-parser";
 
 interface VoiceBotCallModalProps {
   phone: string;
@@ -85,9 +86,21 @@ export default function VoiceBotCallModal({
 
     const currentStep = BOT_STEPS[stepIndex];
 
+    let processedValue: any = answerText.trim();
+    if (currentStep.key === "age") {
+      const parsed = parseAge(answerText);
+      if (parsed === null) {
+        const retryMsg = "I couldn't understand your age. Please state your age in numbers or number words (e.g. 35 or fifteen).";
+        setTranscript([...transcript, { sender: "bot", text: retryMsg }]);
+        speakQuestion(retryMsg);
+        return;
+      }
+      processedValue = parsed;
+    }
+
     const updatedIntake = {
       ...intakeData,
-      [currentStep.key]: answerText.trim(),
+      [currentStep.key]: processedValue,
     };
     setIntakeData(updatedIntake);
 
@@ -111,10 +124,11 @@ export default function VoiceBotCallModal({
       speakQuestion(completionMsg);
 
       setTimeout(() => {
+        const finalAge = parseAge(updatedIntake.age) ?? 35;
         onCompleted({
           patient_name: updatedIntake.patient_name || "Patient",
           phone: phone,
-          age: updatedIntake.age || 35,
+          age: finalAge,
           gender: "Male",
           doctor_id: updatedIntake.doctor_id || doctors[0]?.id || "doc_general_medicine_104",
           chief_complaint: updatedIntake.chief_complaint || "Routine checkup",
@@ -124,21 +138,93 @@ export default function VoiceBotCallModal({
     }
   };
 
-  const handleVoiceListen = () => {
-    if (typeof window !== "undefined" && ("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang = "en-IN";
-      recognition.onstart = () => setIsListening(true);
-      recognition.onresult = (event: any) => {
-        const text = event.results[0][0].transcript;
-        setCurrentInput(text);
-        setIsListening(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  const handleVoiceListen = async () => {
+    if (isListening) {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
+      return;
+    }
+
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      alert("Microphone access is not supported in this browser.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      let mimeType = "audio/webm";
+      if (typeof MediaRecorder !== "undefined") {
+        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          mimeType = "audio/webm;codecs=opus";
+        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+          mimeType = "audio/webm";
+        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mimeType = "audio/mp4";
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorderRef.current = mediaRecorder;
+
+      const audioChunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
       };
-      recognition.onerror = () => setIsListening(false);
-      recognition.start();
-    } else {
-      alert("Voice recognition is not supported in this browser. Please use quick options or typing.");
+
+      mediaRecorder.onstop = async () => {
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+          mediaStreamRef.current = null;
+        }
+        setIsListening(false);
+
+        if (audioChunks.length === 0) return;
+
+        const recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+        if (recordedBlob.size === 0) return;
+
+        try {
+          const formData = new FormData();
+          const ext = recordedBlob.type.includes("mp4") ? "m4a" : "webm";
+          formData.append("audio", recordedBlob, `call_speech.${ext}`);
+          formData.append("language", "en");
+
+          const res = await fetch("/api/transcribe-whisper", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success && data.transcription) {
+            setCurrentInput(data.transcription);
+            handleNextStep(data.transcription);
+          }
+        } catch (err: any) {
+          console.warn("Whisper call transcription error:", err);
+        }
+      };
+
+      mediaRecorder.start(100);
+      setIsListening(true);
+
+      setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+          mediaRecorderRef.current.stop();
+        }
+      }, 6000);
+    } catch (err: any) {
+      setIsListening(false);
+      console.warn("Mic access error:", err);
     }
   };
 

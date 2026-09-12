@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { QrCode, CheckCircle2, Camera, Upload, Sparkles, Building2, AlertCircle, RefreshCw, Image as ImageIcon } from "lucide-react";
+// @ts-ignore
 import { Html5Qrcode } from "html5-qrcode";
 
 interface QRScannerModalProps {
@@ -80,7 +81,7 @@ export default function QRScannerModal({ onScanSuccess }: QRScannerModalProps) {
       await html5Qrcode.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 220, height: 220 } },
-        (decodedText) => {
+        (decodedText: string) => {
           html5Qrcode.stop().catch(() => {});
           processQrResult(decodedText);
         },

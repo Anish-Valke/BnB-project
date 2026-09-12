@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Copy, ThumbsUp, ThumbsDown, MoreHorizontal, Send, Mic, MicOff, Volume2, X, Globe, Sparkles, Check } from "lucide-react";
 import { PatientIntakeData } from "@/lib/types";
+import { parseAge } from "@/lib/age-parser";
 
 interface AiChatModalProps {
   phone: string;
@@ -195,9 +196,31 @@ export default function AiChatModal({
     setMessages(newMessages);
     setCurrentInput("");
 
+    let processedValue: any = text;
+    if (currentStep.key === "age") {
+      const parsed = parseAge(text);
+      if (parsed === null) {
+        const retryMsgText =
+          language === "hi"
+            ? "कृपया अपनी उम्र अंकों या शब्दों में बताएं (उदा. 35 या पंद्रह)।"
+            : "Please state your age clearly in numbers or number words (e.g. 35 or fifteen).";
+        setTimeout(() => {
+          const botMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            sender: "bot",
+            text: retryMsgText,
+          };
+          setMessages([...newMessages, botMsg]);
+          speakText(retryMsgText);
+        }, 400);
+        return;
+      }
+      processedValue = parsed;
+    }
+
     const updatedIntake = {
       ...intakeData,
-      [currentStep.key]: text,
+      [currentStep.key]: processedValue,
     };
     setIntakeData(updatedIntake);
 
@@ -232,10 +255,11 @@ export default function AiChatModal({
         speakText(completionText);
 
         setTimeout(() => {
+          const finalAge = parseAge(updatedIntake.age) ?? 35;
           onCompleted({
             patient_name: updatedIntake.patient_name || "Patient",
             phone: phone,
-            age: updatedIntake.age || 35,
+            age: finalAge,
             gender: "Male",
             doctor_id: updatedIntake.doctor_id || doctors[0]?.id || "doc_general_medicine_104",
             chief_complaint: updatedIntake.chief_complaint || "Routine checkup",
@@ -247,134 +271,160 @@ export default function AiChatModal({
     }
   };
 
-  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const autoStopTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [micStatusMsg, setMicStatusMsg] = useState<string | null>(null);
 
-  // Real Microphone Voice Input Handler
-  const handleWhisperVoiceInput = () => {
+  // Real Microphone Voice Input Handler via MediaRecorder & OpenAI Whisper
+  const handleWhisperVoiceInput = async () => {
+    // If currently recording, stop recording
     if (isRecording) {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
+      if (autoStopTimerRef.current) {
+        clearTimeout(autoStopTimerRef.current);
+        autoStopTimerRef.current = null;
       }
-      setIsRecording(false);
-      setMicStatusMsg(null);
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
       return;
     }
 
-    setMicStatusMsg(language === "hi" ? "सुन रहा हूँ... बोलिए 🎙️" : "Listening... Speak your response now 🎙️");
-    setIsRecording(true);
+    setMicStatusMsg(null);
 
-    if (typeof window !== "undefined" && ("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-      try {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognitionRef.current = recognition;
-
-        recognition.lang = language === "hi" ? "hi-IN" : "en-IN";
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onstart = () => {
-          setIsRecording(true);
-        };
-
-        recognition.onresult = async (event: any) => {
-          const spokenText = event.results[0][0].transcript;
-          setIsRecording(false);
-          setMicStatusMsg(null);
-
-          if (spokenText && spokenText.trim()) {
-            try {
-              const res = await fetch("/api/transcribe-whisper", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: spokenText, language }),
-              });
-              const whisperData = await res.json();
-              const textToUse = whisperData.transcription || spokenText;
-              setCurrentInput(textToUse);
-              handleSendMessage(textToUse);
-            } catch {
-              setCurrentInput(spokenText);
-              handleSendMessage(spokenText);
-            }
-          }
-        };
-
-        recognition.onerror = (err: any) => {
-          console.warn("[SpeechRecognition Notice]:", err?.error);
-          setIsRecording(false);
-          if (err?.error === "not-allowed") {
-            setMicStatusMsg(language === "hi" ? "माइक अनुमति ब्लॉक है। कृपया ब्राउज़र सेटिंग में अनुमति दें।" : "Microphone permission blocked. Please allow microphone access in settings.");
-          } else {
-            // Fallback to MediaRecorder direct audio capture
-            startMediaRecorderFallback();
-          }
-        };
-
-        recognition.onend = () => {
-          setIsRecording(false);
-        };
-
-        recognition.start();
-        return;
-      } catch (e) {
-        console.warn("SpeechRecognition init error:", e);
-      }
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      setMicStatusMsg(
+        language === "hi"
+          ? "माइक इस ब्राउज़र में समर्थित नहीं है।"
+          : "Microphone access is not supported in this browser."
+      );
+      return;
     }
 
-    startMediaRecorderFallback();
-  };
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
 
-  const startMediaRecorderFallback = () => {
-    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
-      setMicStatusMsg(language === "hi" ? "ऑडियो रिकॉर्ड हो रहा है... बोलिए 🎙️" : "Recording audio... Speak now 🎙️");
-      setIsRecording(true);
-      navigator.mediaDevices
-        .getUserMedia({ audio: true })
-        .then((stream) => {
-          const mediaRecorder = new MediaRecorder(stream);
-          const chunks: Blob[] = [];
+      let mimeType = "audio/webm";
+      if (typeof MediaRecorder !== "undefined") {
+        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          mimeType = "audio/webm;codecs=opus";
+        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+          mimeType = "audio/webm";
+        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          mimeType = "audio/mp4";
+        } else if (MediaRecorder.isTypeSupported("audio/ogg")) {
+          mimeType = "audio/ogg";
+        }
+      }
 
-          mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-          mediaRecorder.onstop = async () => {
-            stream.getTracks().forEach((track) => track.stop());
-            setIsRecording(false);
+      const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorderRef.current = mediaRecorder;
+
+      const audioChunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Clean up stream tracks
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+          mediaStreamRef.current = null;
+        }
+        setIsRecording(false);
+
+        if (audioChunks.length === 0) {
+          setMicStatusMsg(
+            language === "hi"
+              ? "कोई ऑडियो दर्ज नहीं हुआ। फिर से प्रयास करें।"
+              : "No audio captured. Please try speaking again."
+          );
+          return;
+        }
+
+        const recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+
+        if (recordedBlob.size === 0) {
+          setMicStatusMsg(
+            language === "hi"
+              ? "खाली ऑडियो रिकॉर्डिंग। फिर से प्रयास करें।"
+              : "Empty audio recording. Please try speaking again."
+          );
+          return;
+        }
+
+        setMicStatusMsg(
+          language === "hi"
+            ? "आपकी आवाज़ का ट्रांसक्रिप्शन हो रहा है... ⏳"
+            : "Transcribing audio with Groq Whisper... ⏳"
+        );
+
+        try {
+          const formData = new FormData();
+          const ext = recordedBlob.type.includes("mp4") ? "m4a" : "webm";
+          formData.append("audio", recordedBlob, `speech.${ext}`);
+          formData.append("language", language);
+
+          const res = await fetch("/api/transcribe-whisper", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success && data.transcription) {
             setMicStatusMsg(null);
+            setCurrentInput(data.transcription);
+            handleSendMessage(data.transcription);
+          } else {
+            setMicStatusMsg(
+              data.error ||
+                (language === "hi"
+                  ? "ट्रांसक्रिप्शन विफल रहा। फिर से प्रयास करें।"
+                  : "Whisper transcription failed. Please try speaking again.")
+            );
+          }
+        } catch (err: any) {
+          setMicStatusMsg(
+            err.message ||
+              (language === "hi"
+                ? "नेटवर्क त्रुटि। कृपया पुनः प्रयास करें।"
+                : "Network error during transcription. Please try again.")
+          );
+        }
+      };
 
-            try {
-              const formData = new FormData();
-              formData.append("audio", new Blob(chunks, { type: "audio/webm" }));
-              formData.append("language", language);
+      mediaRecorder.start(100);
+      setIsRecording(true);
+      setMicStatusMsg(
+        language === "hi"
+          ? "🔴 रिकॉर्डिंग चालू है... बोलिए 🎙️ (रोकने के लिए गोला दबाएं)"
+          : "🔴 Recording active... Speak now 🎙️ (Tap orb when done)"
+      );
 
-              const res = await fetch("/api/transcribe-whisper", {
-                method: "POST",
-                body: formData,
-              });
-              const data = await res.json();
-
-              if (data.transcription && data.transcription !== "[Audio file recorded]") {
-                handleSendMessage(data.transcription);
-              }
-            } catch (err: any) {
-              console.warn("Whisper upload error:", err);
-            }
-          };
-
-          mediaRecorder.start();
-          setTimeout(() => {
-            if (mediaRecorder.state === "recording") {
-              mediaRecorder.stop();
-            }
-          }, 4000);
-        })
-        .catch((err) => {
-          setIsRecording(false);
-          setMicStatusMsg(language === "hi" ? "माइक्रोफोन अनुमति अस्वीकृत।" : "Microphone access denied. Please allow mic in settings.");
-        });
-    } else {
+      // Auto-stop recording after 7 seconds of continuous speech
+      autoStopTimerRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+          mediaRecorderRef.current.stop();
+        }
+      }, 7000);
+    } catch (err: any) {
       setIsRecording(false);
-      setMicStatusMsg(language === "hi" ? "कृपया नीचे टाइप करें या विकल्प चुनें।" : "Please type your answer or pick an option below.");
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setMicStatusMsg(
+          language === "hi"
+            ? "माइक अनुमति ब्लॉक है। कृपया ब्राउज़र सेटिंग में अनुमति दें।"
+            : "Microphone permission blocked. Please allow microphone access in settings."
+        );
+      } else {
+        setMicStatusMsg(
+          err.message || "Failed to access microphone. Please check settings."
+        );
+      }
     }
   };
 
