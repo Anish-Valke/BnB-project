@@ -25,6 +25,18 @@ export async function POST(
 
     const doctorTyped = doctor as Doctor;
 
+    let doctorNotes = null;
+    let prescriptionText = null;
+    try {
+      const body = await request.json();
+      if (body) {
+        doctorNotes = body.doctor_notes || null;
+        prescriptionText = body.prescription_text || null;
+      }
+    } catch (e) {
+      // Body might be empty
+    }
+
     // 2. Conclude currently active token (if any)
     const { data: activeTokens } = await supabase
       .from("tokens")
@@ -39,6 +51,8 @@ export async function POST(
           .update({
             status: "completed",
             consultation_completed_at: nowIso,
+            doctor_notes: doctorNotes,
+            prescription_text: prescriptionText,
           })
           .eq("id", t.id);
       }

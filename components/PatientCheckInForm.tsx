@@ -17,7 +17,6 @@ import {
   PhoneCall,
   CheckCircle2,
 } from "lucide-react";
-import LocationCheckCard from "./LocationCheckCard";
 import PhoneOtpModal from "./PhoneOtpModal";
 import AiChatModal from "./AiChatModal";
 import { Doctor, LocationVerification, PatientIntakeData, GeminiValidationResult } from "@/lib/types";
@@ -250,8 +249,8 @@ export default function PatientCheckInForm({
 
       const tokenNum = tokenData.token_number || tokenData.token?.token_number;
 
-      // 4. Redirect to live patient queue tracker
-      router.push(`/patient/${tokenNum}?doctorId=${selectedDoctorId}`);
+      // 4. Redirect to dashboard
+      router.push(`/patient/dashboard?tab=dashboard`);
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred during check-in.");
       setIsSubmitting(false);
@@ -260,8 +259,6 @@ export default function PatientCheckInForm({
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-6">
-      {/* 1. Hospital Location Proximity Check */}
-      <LocationCheckCard onVerified={(loc) => setLocationVerification(loc)} />
 
       {/* 2. Fast2SMS Phone OTP Verification Step */}
       {!phoneVerified ? (

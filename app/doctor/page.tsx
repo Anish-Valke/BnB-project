@@ -10,6 +10,10 @@ export default function DoctorConsolePage() {
   const [currentServing, setCurrentServing] = useState<Token | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  const [doctorNotes, setDoctorNotes] = useState("");
+  const [prescriptionText, setPrescriptionText] = useState("");
+  const [patientHistory, setPatientHistory] = useState<any[]>([]);
 
   const DOCTOR_ID = "doc_general_medicine_104";
 
@@ -33,7 +37,24 @@ export default function DoctorConsolePage() {
     fetchQueue();
   }, []);
 
-  const handleAction = async (action: "next" | "skip" | "emergency") => {
+  useEffect(() => {
+    if (currentServing?.patient_phone) {
+      fetch(`/api/prescriptions/${currentServing.patient_phone}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.prescriptions) {
+            setPatientHistory(data.prescriptions);
+          } else {
+            setPatientHistory([]);
+          }
+        })
+        .catch(() => setPatientHistory([]));
+    } else {
+      setPatientHistory([]);
+    }
+  }, [currentServing]);
+
+  const handleAction = async (action: "next" | "skip" | "emergency", delayMins?: number) => {
     if (actionLoading) return;
     setActionLoading(action);
     
@@ -46,16 +67,24 @@ export default function DoctorConsolePage() {
       const nextToken = queue[0];
       setCurrentServing(nextToken);
       setQueue(queue.slice(1));
-    } else if (action === "emergency" && doctor) {
-      setDoctor({ ...doctor, emergency_delay: doctor.emergency_delay + 15 });
+    } else if (action === "emergency" && doctor && delayMins) {
+      setDoctor({ ...doctor, emergency_delay: doctor.emergency_delay + delayMins });
     }
 
     try {
       const res = await fetch(`/api/queue/${DOCTOR_ID}/${action}`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          doctor_notes: doctorNotes,
+          prescription_text: prescriptionText,
+          delay_mins: delayMins,
+        }),
       });
       if (res.ok) {
         // Fetch to ensure true state alignment
+        setDoctorNotes("");
+        setPrescriptionText("");
         await fetchQueue();
       } else {
         console.error(`Action ${action} failed`);
@@ -177,6 +206,51 @@ export default function DoctorConsolePage() {
                         <Clock className="w-4 h-4 mr-1.5 text-amber-500" />
                         AI Estimated Duration: {currentServing.predicted_mins} mins
                       </div>
+
+                      <div className="pt-4 border-t border-slate-100 space-y-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Doctor Notes</label>
+                          <textarea
+                            value={doctorNotes}
+                            onChange={(e) => setDoctorNotes(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                            placeholder="Internal notes (optional)..."
+                            rows={2}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Prescription & Advice</label>
+                          <textarea
+                            value={prescriptionText}
+                            onChange={(e) => setPrescriptionText(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                            placeholder="Write prescription medicines, tests, or advice here..."
+                            rows={4}
+                          />
+                        </div>
+                      </div>
+
+                      {patientHistory.length > 0 && (
+                        <div className="pt-4 border-t border-slate-100 space-y-3">
+                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Past Prescriptions & Visits</label>
+                          <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
+                            {patientHistory.map((hist) => (
+                              <div key={hist.id} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-xs font-bold text-slate-700">{hist.date}</span>
+                                  <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{hist.department}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 italic mb-2">Complaint: {hist.chief_complaint}</p>
+                                {hist.prescription_text && (
+                                  <p className="text-sm font-medium text-slate-800 bg-white p-2 border border-slate-200 rounded text-left whitespace-pre-wrap">
+                                    {hist.prescription_text}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </>
                   ) : (
                     <div className="text-slate-500 flex flex-col items-center justify-center pt-8">
@@ -203,7 +277,7 @@ export default function DoctorConsolePage() {
                 Call Next Token
               </button>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={() => handleAction("skip")}
                   disabled={!!actionLoading || !currentServing}
@@ -216,18 +290,29 @@ export default function DoctorConsolePage() {
                   )}
                   Skip / No-Show
                 </button>
-                <button
-                  onClick={() => handleAction("emergency")}
-                  disabled={!!actionLoading}
-                  className="bg-red-50 hover:bg-red-100 disabled:bg-red-50/50 disabled:text-red-400 border border-red-200 text-red-700 font-semibold py-3 px-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed"
-                >
-                  {actionLoading === "emergency" ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <AlertTriangle className="w-4 h-4 mr-2" />
-                  )}
-                  +15m Delay
-                </button>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => handleAction("emergency", 2)}
+                    disabled={!!actionLoading}
+                    className="bg-red-50 hover:bg-red-100 disabled:bg-red-50/50 disabled:text-red-400 border border-red-200 text-red-700 font-semibold py-2 px-2 rounded-xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed text-xs sm:text-sm"
+                  >
+                    +2m
+                  </button>
+                  <button
+                    onClick={() => handleAction("emergency", 5)}
+                    disabled={!!actionLoading}
+                    className="bg-red-50 hover:bg-red-100 disabled:bg-red-50/50 disabled:text-red-400 border border-red-200 text-red-700 font-semibold py-2 px-2 rounded-xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed text-xs sm:text-sm"
+                  >
+                    +5m
+                  </button>
+                  <button
+                    onClick={() => handleAction("emergency", 10)}
+                    disabled={!!actionLoading}
+                    className="bg-red-50 hover:bg-red-100 disabled:bg-red-50/50 disabled:text-red-400 border border-red-200 text-red-700 font-semibold py-2 px-2 rounded-xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed text-xs sm:text-sm"
+                  >
+                    +10m
+                  </button>
+                </div>
               </div>
             </div>
           </div>

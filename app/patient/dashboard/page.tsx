@@ -393,12 +393,17 @@ export default function PatientDashboardPage() {
                       Doctor: <strong>{doctor?.name || "Dr. Anjali Sharma"}</strong> ({doctor?.room_number || "Room 104"})
                     </span>
                   </div>
-                  <Link
-                    href={`/patient/${activeToken.token_number}?doctorId=${activeToken.doctor_id}`}
-                    className="text-teal-400 hover:underline font-semibold text-xs"
+                  <button
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to cancel your token?")) {
+                        await fetch(`/api/tokens/${activeToken.id}/cancel`, { method: 'POST' });
+                        if (phone) fetchDashboardData(phone);
+                      }
+                    }}
+                    className="text-red-400 hover:text-red-500 font-semibold text-xs underline"
                   >
-                    View Full Live Queue Tracker →
-                  </Link>
+                    Cancel My Token
+                  </button>
                 </div>
 
                 {/* Floating Hindi Audio Announcement Button */}
