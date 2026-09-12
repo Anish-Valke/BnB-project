@@ -13,9 +13,9 @@ export default function CheckInPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center">
-      <div className="flex items-center gap-3 text-sm text-zinc-400 font-medium">
-        <Loader2 className="w-5 h-5 animate-spin text-teal-400" />
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+      <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+        <Loader2 className="w-5 h-5 animate-spin text-primary" />
         <span>Loading Patient OPD Registration Portal...</span>
       </div>
     </div>

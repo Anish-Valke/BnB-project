@@ -24,8 +24,13 @@ import {
 } from "lucide-react";
 import PhoneOtpModal from "@/components/PhoneOtpModal";
 import PatientCheckInForm from "@/components/PatientCheckInForm";
-import StatusBadge from "@/components/StatusBadge";
-import HindiVoiceButton from "@/components/HindiVoiceButton";
+import ActiveQueueCard from "@/components/patient/ActiveQueueCard";
+import EmptyQueueState from "@/components/patient/EmptyQueueState";
+import VisitHistoryCard from "@/components/patient/VisitHistoryCard";
+import PrescriptionCard from "@/components/patient/PrescriptionCard";
+import GlassCard from "@/components/ui/GlassCard";
+import Button from "@/components/ui/Button";
+
 import {
   getPatientPhoneSession,
   setPatientPhoneSession,
@@ -98,7 +103,9 @@ export default function PatientDashboardPage() {
         setProfileHistory(data.patient.prior_history || "");
       }
       if (data.active_token) setActiveToken(data.active_token);
+      else setActiveToken(null);
       if (data.calculated_metrics) setMetrics(data.calculated_metrics);
+      else setMetrics(null);
       if (data.doctor) setDoctor(data.doctor);
       if (data.prescriptions) setPrescriptions(data.prescriptions);
     } catch (err) {
@@ -140,7 +147,6 @@ export default function PatientDashboardPage() {
     }
   };
 
-
   const handlePhoneVerified = (verifiedPhone: string) => {
     setPhone(verifiedPhone);
     setPatientPhoneSession(verifiedPhone);
@@ -159,14 +165,14 @@ export default function PatientDashboardPage() {
   // Unauthenticated Login Screen
   if (!phone) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col justify-center items-center p-4">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-center space-y-2">
-            <div className="inline-flex p-3 bg-teal-500/10 text-teal-400 rounded-3xl mb-1 shadow-inner">
-              <Stethoscope className="w-8 h-8" />
+      <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center p-4">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center space-y-4">
+            <div className="inline-flex p-4 bg-primary/10 text-primary rounded-[2rem] mb-2 shadow-inner">
+              <Stethoscope className="w-10 h-10" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight">ArogyaFlow Patient Portal</h1>
-            <p className="text-xs text-zinc-400">
+            <h1 className="text-3xl font-black tracking-tight text-primary">ArogyaFlow Patient</h1>
+            <p className="text-sm text-gray-500">
               Verify mobile number with Fast2SMS OTP to access your patient dashboard.
             </p>
           </div>
@@ -178,18 +184,18 @@ export default function PatientDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row font-sans">
       {/* Mobile Top Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-zinc-950 border-b border-zinc-900">
+      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-teal-500 text-black flex items-center justify-center font-bold">
+          <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center font-bold">
             <Activity className="w-4 h-4" />
           </div>
-          <span className="font-extrabold text-sm text-white">ArogyaFlow</span>
+          <span className="font-extrabold text-sm text-foreground">ArogyaFlow</span>
         </div>
         <button
           onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-          className="p-2 rounded-xl bg-zinc-900 text-zinc-300"
+          className="p-2 rounded-xl bg-surface hover:bg-surface-hover text-gray-600 transition-colors"
         >
           {mobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -197,251 +203,145 @@ export default function PatientDashboardPage() {
 
       {/* LEFT SIDEBAR NAVIGATION */}
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-zinc-950 border-r border-zinc-900 p-5 flex flex-col justify-between transition-transform duration-300 ${
+        className={`fixed md:sticky top-0 inset-y-0 left-0 z-40 w-64 bg-surface border-r border-gray-200/50 p-6 flex flex-col justify-between transition-transform duration-300 shadow-xl md:shadow-none h-screen ${
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Logo */}
-          <div className="flex items-center gap-3 pb-4 border-b border-zinc-900">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-500 to-indigo-500 flex items-center justify-center font-black text-black shadow-lg shadow-teal-500/20">
+          <div className="flex items-center gap-3 pb-6 border-b border-gray-200/50">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
               <Activity className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-black text-base text-white">ArogyaFlow</h2>
-              <span className="text-[10px] text-teal-400 font-mono">Patient Portal v2.0</span>
+              <h2 className="font-black text-lg text-primary">ArogyaFlow</h2>
+              <span className="text-xs text-secondary font-medium">Patient Portal</span>
             </div>
           </div>
 
           {/* Patient Quick Profile Box */}
-          <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-2xl flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold">
+          <GlassCard className="p-3 bg-white flex items-center gap-3 shadow-sm border-gray-100">
+            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0">
               <User className="w-5 h-5" />
             </div>
             <div className="overflow-hidden">
-              <p className="text-xs font-bold text-white truncate">{patient?.name || "Ramesh Kumar"}</p>
-              <p className="text-[10px] text-zinc-500 font-mono">{phone}</p>
+              <p className="text-sm font-bold text-foreground truncate">{patient?.name || "Ramesh Kumar"}</p>
+              <p className="text-xs text-gray-500 font-mono">{phone}</p>
             </div>
-          </div>
+          </GlassCard>
 
           {/* Navigation Items */}
-          <nav className="space-y-1 text-xs font-semibold">
-            <button
-              onClick={() => {
-                setActiveTab("dashboard");
-                setMobileSidebarOpen(false);
-              }}
-              className={`w-full p-3 rounded-2xl flex items-center justify-between transition-all ${
-                activeTab === "dashboard"
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20 font-bold"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab("opd-registration");
-                setMobileSidebarOpen(false);
-              }}
-              className={`w-full p-3 rounded-2xl flex items-center justify-between transition-all ${
-                activeTab === "opd-registration"
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20 font-bold"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <FileText className="w-4 h-4" />
-                <span>OPD Registration</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab("prescriptions");
-                setMobileSidebarOpen(false);
-              }}
-              className={`w-full p-3 rounded-2xl flex items-center justify-between transition-all ${
-                activeTab === "prescriptions"
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20 font-bold"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Pill className="w-4 h-4" />
-                <span>Prescriptions History</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-            </button>
-
-            <button
-              onClick={() => {
-                setActiveTab("profile");
-                setMobileSidebarOpen(false);
-              }}
-              className={`w-full p-3 rounded-2xl flex items-center justify-between transition-all ${
-                activeTab === "profile"
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-600/20 font-bold"
-                  : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <User className="w-4 h-4" />
-                <span>My Profile</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-            </button>
+          <nav className="space-y-2 font-medium">
+            {[
+              { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+              { id: "opd-registration", icon: FileText, label: "OPD Registration" },
+              { id: "prescriptions", icon: Pill, label: "Medical History" },
+              { id: "profile", icon: User, label: "My Profile" },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id as SidebarTab);
+                  setMobileSidebarOpen(false);
+                }}
+                className={`w-full px-4 py-3 rounded-2xl flex items-center justify-between transition-all group ${
+                  activeTab === item.id
+                    ? "bg-primary text-white shadow-lg shadow-primary/25 font-bold"
+                    : "text-gray-500 hover:bg-surface-hover hover:text-foreground"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.label}</span>
+                </div>
+                <ChevronRight className={`w-4 h-4 transition-transform ${activeTab === item.id ? "opacity-100 translate-x-1" : "opacity-0 -translate-x-2 group-hover:opacity-50 group-hover:translate-x-0"}`} />
+              </button>
+            ))}
           </nav>
         </div>
 
         {/* Sidebar Footer Logout */}
-        <div className="pt-4 border-t border-zinc-900 space-y-2">
-          <button
+        <div className="pt-6 border-t border-gray-200/50 space-y-3">
+          <Button
+            variant="outline"
             onClick={() => fetchDashboardData(phone)}
-            className="w-full p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+            className="w-full justify-center text-gray-600 hover:text-primary"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span>Refresh Data</span>
-          </button>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin text-primary" : ""}`} />
+            Refresh Data
+          </Button>
 
-          <button
+          <Button
+            variant="ghost"
             onClick={handleLogout}
-            className="w-full p-2.5 rounded-xl bg-red-950/60 hover:bg-red-900/80 border border-red-800 text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+            className="w-full justify-center text-red-600 hover:bg-red-50 hover:text-red-700 border border-transparent hover:border-red-100"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Logout Session</span>
-          </button>
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout Session
+          </Button>
         </div>
       </aside>
 
       {/* RIGHT MAIN CONTENT DISPLAY AREA */}
-      <main className="flex-1 p-4 sm:p-8 overflow-y-auto max-w-5xl">
+      <main className="flex-1 p-4 sm:p-8 lg:p-10 max-w-6xl mx-auto w-full pb-24">
         {/* TAB 1: DASHBOARD OVERVIEW & ACTIVE TOKEN */}
         {activeTab === "dashboard" && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="space-y-8 animate-in fade-in duration-500 slide-in-from-bottom-4">
             {/* Top Welcome Banner */}
-            <div className="p-6 bg-gradient-to-r from-zinc-900 via-zinc-900 to-indigo-950/60 border border-zinc-800 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-2">
               <div>
-                <h1 className="text-xl font-extrabold text-white">
-                  Welcome back, {patient?.name || "Ramesh Kumar"} 👋
+                <h1 className="text-3xl font-black text-foreground">
+                  Hello, {patient?.name || "Ramesh Kumar"} 👋
                 </h1>
-                <p className="text-xs text-zinc-400 mt-1">
+                <p className="text-sm text-gray-500 mt-1.5">
                   Manage your active OPD queue token, view past prescriptions, or register for consultation.
                 </p>
               </div>
 
-              <button
+              <Button
+                variant="primary"
                 onClick={() => setActiveTab("opd-registration")}
-                className="px-4 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs flex items-center gap-2 transition-all shadow-lg shadow-teal-600/20 shrink-0"
+                className="shrink-0 rounded-full px-6 py-3 shadow-xl shadow-primary/20"
               >
-                <PlusCircle className="w-4 h-4" />
-                <span>Book OPD Token</span>
-              </button>
+                <PlusCircle className="w-5 h-5 mr-2" />
+                Book OPD Token
+              </Button>
             </div>
 
-            {/* Active Live Token Banner */}
-            {activeToken && metrics ? (
-              <div className="p-6 bg-zinc-900 border-2 border-teal-500/40 rounded-3xl shadow-2xl space-y-4 relative overflow-hidden">
-                <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="flex h-3 w-3 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
-                    </span>
-                    <h3 className="font-bold text-white text-base">Active Live OPD Token Status</h3>
-                  </div>
-
-                  <StatusBadge
-                    myToken={activeToken.token_number}
-                    currentToken={doctor?.current_token || 60}
-                    estimatedWaitMins={metrics.estimated_wait_mins}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-2">
-                  <div className="p-3.5 bg-black/50 border border-zinc-800 rounded-2xl text-center">
-                    <span className="text-[10px] text-zinc-500 uppercase font-semibold">Your Token</span>
-                    <p className="text-2xl font-black text-teal-400">#{activeToken.token_number}</p>
-                  </div>
-
-                  <div className="p-3.5 bg-black/50 border border-zinc-800 rounded-2xl text-center">
-                    <span className="text-[10px] text-zinc-500 uppercase font-semibold">Patients Ahead</span>
-                    <p className="text-2xl font-black text-white">{metrics.patients_ahead}</p>
-                  </div>
-
-                  <div className="p-3.5 bg-black/50 border border-zinc-800 rounded-2xl text-center">
-                    <span className="text-[10px] text-zinc-500 uppercase font-semibold">Estimated Wait</span>
-                    <p className="text-2xl font-black text-amber-400">{metrics.estimated_wait_mins} mins</p>
-                  </div>
-
-                  <div className="p-3.5 bg-black/50 border border-zinc-800 rounded-2xl text-center">
-                    <span className="text-[10px] text-zinc-500 uppercase font-semibold">Expected Turn</span>
-                    <p className="text-base font-bold text-indigo-400 mt-1">{metrics.expected_turn_time}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-zinc-950 rounded-2xl border border-zinc-800 text-xs text-zinc-300 gap-2">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-teal-400" />
-                    <span>
-                      Doctor: <strong>{doctor?.name || "Dr. Anjali Sharma"}</strong> ({doctor?.room_number || "Room 104"})
-                    </span>
-                  </div>
-                  <button
-                    onClick={async () => {
-                      if (confirm("Are you sure you want to cancel your token?")) {
-                        await fetch(`/api/tokens/${activeToken.id}/cancel`, { method: 'POST' });
-                        if (phone) fetchDashboardData(phone);
-                      }
-                    }}
-                    className="text-red-400 hover:text-red-500 font-semibold text-xs underline"
-                  >
-                    Cancel My Token
-                  </button>
-                </div>
-
-                {/* Floating Hindi Audio Announcement Button */}
-                <HindiVoiceButton
-                  myToken={activeToken.token_number}
-                  estimatedWaitMins={metrics.estimated_wait_mins}
-                  patientsAhead={metrics.patients_ahead}
-                />
-              </div>
+            {/* Active Live Token Banner or Empty State */}
+            {activeToken && metrics && doctor ? (
+              <ActiveQueueCard
+                tokenNumber={activeToken.token_number}
+                currentServing={doctor.current_token}
+                patientsAhead={metrics.patients_ahead}
+                estimatedWaitTime={metrics.estimated_wait_mins}
+                expectedTime={metrics.expected_turn_time}
+                doctorName={doctor.name}
+                department={doctor.department}
+                roomNumber={doctor.room_number || "OPD Room"}
+                status={metrics.buffer_label as any || "Relax"}
+                statusMessage={`Please wait, you have ${metrics.patients_ahead} patients ahead.`}
+                onRefresh={() => {
+                  if (phone) fetchDashboardData(phone);
+                }}
+              />
             ) : (
-              <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-3xl text-center space-y-3">
-                <Clock className="w-8 h-8 text-zinc-600 mx-auto" />
-                <h3 className="text-sm font-semibold text-white">No Active Token Currently</h3>
-                <p className="text-xs text-zinc-400 max-w-sm mx-auto">
-                  Select &quot;OPD Registration&quot; from the sidebar to register and issue a new consultation token.
-                </p>
-                <button
-                  onClick={() => setActiveTab("opd-registration")}
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs rounded-xl transition-all"
-                >
-                  Go to OPD Registration Form
-                </button>
-              </div>
+              <EmptyQueueState onGetToken={() => setActiveTab("opd-registration")} patientName={patient?.name || "Patient"} />
             )}
           </div>
         )}
 
         {/* TAB 2: PATIENT OPD REGISTRATION FORM */}
         {activeTab === "opd-registration" && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-900">
-              <div>
-                <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-teal-400" />
-                  Patient OPD Registration
-                </h2>
-                <p className="text-xs text-zinc-400">Fill form or use AI Chat with Gemini triage</p>
-              </div>
+          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 max-w-3xl">
+            <div className="mb-8">
+              <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-xl">
+                  <FileText className="w-6 h-6 text-primary" />
+                </div>
+                OPD Registration
+              </h2>
+              <p className="text-sm text-gray-500 mt-2">Fill the form below or use AI Chat with Gemini triage for automatic registration.</p>
             </div>
 
             <PatientCheckInForm
@@ -456,64 +356,40 @@ export default function PatientDashboardPage() {
 
         {/* TAB 3: PREVIOUS PRESCRIPTIONS HISTORY */}
         {activeTab === "prescriptions" && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-900">
+          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4">
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-                  <Pill className="w-5 h-5 text-indigo-400" />
-                  Prescriptions & Medical History
+                <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
+                  <div className="p-2 bg-secondary/10 rounded-xl">
+                    <Pill className="w-6 h-6 text-secondary" />
+                  </div>
+                  Medical History
                 </h2>
-                <p className="text-xs text-zinc-400">View past doctor consultations, clinical notes, and medicines</p>
+                <p className="text-sm text-gray-500 mt-2">View past doctor consultations, clinical notes, and medicines</p>
               </div>
-              <span className="text-xs font-mono text-zinc-500">{prescriptions.length} Records</span>
+              <span className="px-4 py-2 bg-surface rounded-full text-sm font-semibold text-foreground border border-gray-100">
+                {prescriptions.length} Records Found
+              </span>
             </div>
 
             {prescriptions.length === 0 ? (
-              <div className="p-8 bg-zinc-900 border border-zinc-800 rounded-3xl text-center text-xs text-zinc-500">
-                No past prescription records found.
-              </div>
+              <GlassCard className="text-center py-16">
+                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-foreground">No History Found</h3>
+                <p className="text-sm text-gray-500">You don't have any past prescription records yet.</p>
+              </GlassCard>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {prescriptions.map((pres) => (
-                  <div
+                  <VisitHistoryCard
                     key={pres.id}
-                    className="p-5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 rounded-3xl space-y-3 transition-all"
-                  >
-                    <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                      <div>
-                        <h4 className="font-bold text-white text-sm">{pres.doctor_name}</h4>
-                        <p className="text-[11px] text-zinc-400">{pres.department}</p>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-[10px] font-mono flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-teal-400" />
-                        {pres.date}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] text-zinc-500 uppercase font-semibold">Chief Complaint</span>
-                      <p className="text-xs text-zinc-300 font-medium">{pres.chief_complaint}</p>
-                    </div>
-
-                    {pres.doctor_notes && (
-                      <div>
-                        <span className="text-[10px] text-zinc-500 uppercase font-semibold">Doctor Clinical Notes</span>
-                        <p className="text-xs text-zinc-400 italic bg-black/40 p-2 rounded-xl border border-zinc-800">
-                          &quot;{pres.doctor_notes}&quot;
-                        </p>
-                      </div>
-                    )}
-
-                    <div>
-                      <span className="text-[10px] text-teal-400 uppercase font-semibold flex items-center gap-1 mb-1">
-                        <Pill className="w-3 h-3" />
-                        Prescription Medicines
-                      </span>
-                      <pre className="text-xs text-zinc-200 font-sans whitespace-pre-wrap bg-zinc-950 p-3 rounded-xl border border-zinc-800/80 leading-relaxed">
-                        {pres.prescription_text}
-                      </pre>
-                    </div>
-                  </div>
+                    date={pres.date || "Unknown Date"}
+                    doctorName={pres.doctor_name || "Unknown Doctor"}
+                    department={pres.department || "General"}
+                    complaint={pres.chief_complaint || "No complaint recorded"}
+                    doctorNotes={pres.doctor_notes}
+                    prescriptionText={pres.prescription_text}
+                  />
                 ))}
               </div>
             )}
@@ -522,107 +398,110 @@ export default function PatientDashboardPage() {
 
         {/* TAB 4: PATIENT PROFILE */}
         {activeTab === "profile" && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between pb-2 border-b border-zinc-900">
-              <div>
-                <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-                  <User className="w-5 h-5 text-teal-400" />
-                  My Registered Profile
-                </h2>
-                <p className="text-xs text-zinc-400">Personal details stored in hospital database</p>
-              </div>
+          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-4 max-w-2xl">
+            <div className="mb-8">
+              <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-xl">
+                  <User className="w-6 h-6 text-primary" />
+                </div>
+                My Profile
+              </h2>
+              <p className="text-sm text-gray-500 mt-2">Personal details stored securely in the hospital database</p>
             </div>
 
-            <form onSubmit={handleSaveProfile} className="p-6 bg-zinc-900 border border-zinc-800 rounded-3xl space-y-4 max-w-xl">
+            <GlassCard className="p-8 space-y-6">
               {profileSaveSuccess && (
-                <div className="p-3.5 rounded-2xl bg-teal-950/60 border border-teal-800 text-teal-300 text-xs flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                  <span>Profile updated and registered successfully in hospital database!</span>
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-semibold flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  <span>Profile updated successfully!</span>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label className="block text-[10px] text-zinc-400 uppercase font-semibold mb-1">
-                    Registered Full Name *
+              <form onSubmit={handleSaveProfile} className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={profileName}
+                      onChange={(e) => setProfileName(e.target.value)}
+                      className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Verified Mobile
+                    </label>
+                    <input
+                      type="text"
+                      disabled
+                      value={phone || ""}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-mono text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Age
+                    </label>
+                    <input
+                      type="number"
+                      value={profileAge}
+                      onChange={(e) => setProfileAge(e.target.value)}
+                      className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Gender
+                    </label>
+                    <select
+                      value={profileGender}
+                      onChange={(e) => setProfileGender(e.target.value)}
+                      className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                    Prior Medical History / Allergies
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={profileName}
-                    onChange={(e) => setProfileName(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  <textarea
+                    rows={4}
+                    placeholder="e.g. Hypertension (5 yrs), Type 2 Diabetes, Asthma"
+                    value={profileHistory}
+                    onChange={(e) => setProfileHistory(e.target.value)}
+                    className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-[10px] text-zinc-400 uppercase font-semibold mb-1">
-                    Verified Mobile Phone (OTP)
-                  </label>
-                  <input
-                    type="text"
-                    disabled
-                    value={phone || ""}
-                    className="w-full px-3 py-2.5 bg-zinc-950/50 border border-zinc-800/80 rounded-xl text-xs text-teal-400 font-mono cursor-not-allowed opacity-80"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-zinc-400 uppercase font-semibold mb-1">
-                    Age (Years)
-                  </label>
-                  <input
-                    type="number"
-                    value={profileAge}
-                    onChange={(e) => setProfileAge(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] text-zinc-400 uppercase font-semibold mb-1">
-                    Gender
-                  </label>
-                  <select
-                    value={profileGender}
-                    onChange={(e) => setProfileGender(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                <div className="pt-4 border-t border-gray-100">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={savingProfile}
+                    className="w-full sm:w-auto px-8"
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
+                    {savingProfile ? (
+                      <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <ShieldCheck className="w-5 h-5 mr-2" />
+                    )}
+                    Save Profile Changes
+                  </Button>
                 </div>
-              </div>
-
-              <div className="pt-2 border-t border-zinc-800">
-                <label className="block text-[10px] text-zinc-400 uppercase font-semibold mb-1">
-                  Prior Medical History / Chronic Conditions
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g. Hypertension (5 yrs), Type 2 Diabetes, Asthma"
-                  value={profileHistory}
-                  onChange={(e) => setProfileHistory(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={savingProfile}
-                className="w-full py-3 px-4 bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-semibold text-xs rounded-2xl transition-all shadow-lg shadow-teal-600/20 flex items-center justify-center gap-2"
-              >
-                {savingProfile ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Save Patient Profile to Database</span>
-                  </>
-                )}
-              </button>
-            </form>
+              </form>
+            </GlassCard>
           </div>
         )}
 

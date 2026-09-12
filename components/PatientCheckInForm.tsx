@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   User,
-  Phone,
   Stethoscope,
   Activity,
   FileText,
@@ -14,7 +13,6 @@ import {
   ShieldCheck,
   AlertCircle,
   RefreshCw,
-  PhoneCall,
   CheckCircle2,
 } from "lucide-react";
 import PhoneOtpModal from "./PhoneOtpModal";
@@ -22,6 +20,8 @@ import AiChatModal from "./AiChatModal";
 import { Doctor, LocationVerification, PatientIntakeData, GeminiValidationResult } from "@/lib/types";
 import { getPatientPhoneSession, setPatientPhoneSession } from "@/lib/patient-session";
 import { parseAge } from "@/lib/age-parser";
+import GlassCard from "./ui/GlassCard";
+import Button from "./ui/Button";
 
 interface PatientCheckInFormProps {
   initialDoctors?: Doctor[];
@@ -78,7 +78,6 @@ export default function PatientCheckInForm({
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>(doctors[0]?.id || "");
   const [phoneVerified, setPhoneVerified] = useState<boolean>(() => !!(activeSessionPhone && activeSessionPhone.replace(/\D/g, "").length >= 10));
   const [verifiedPhone, setVerifiedPhone] = useState<string>(() => (activeSessionPhone ? activeSessionPhone.replace(/\D/g, "") : ""));
-  const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
 
   // Form intake state
   const [patientName, setPatientName] = useState(initialPatientName || "");
@@ -98,7 +97,6 @@ export default function PatientCheckInForm({
     if (initialGender) setGender(initialGender);
     if (initialPriorHistory) setPriorHistory(initialPriorHistory);
   }, [initialPhone, initialPatientName, initialAge, initialGender, initialPriorHistory]);
-
 
   // UI state
   const [intakeMode, setIntakeMode] = useState<"form" | "voice">("form");
@@ -254,8 +252,6 @@ export default function PatientCheckInForm({
         throw new Error(tokenData.error || "Failed to generate token");
       }
 
-      const tokenNum = tokenData.token_number || tokenData.token?.token_number;
-
       // 4. Redirect to dashboard
       router.push(`/patient/dashboard?tab=dashboard`);
     } catch (err: any) {
@@ -267,57 +263,57 @@ export default function PatientCheckInForm({
   return (
     <div className="w-full max-w-xl mx-auto space-y-6">
 
-      {/* 2. Fast2SMS Phone OTP Verification Step */}
+      {/* Fast2SMS Phone OTP Verification Step */}
       {!phoneVerified ? (
         <PhoneOtpModal onVerified={handlePhoneVerified} />
       ) : (
-        <div className="p-4 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-3xl flex items-center justify-between shadow-sm">
+        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-3xl flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-teal-500 text-white flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-bold">
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-teal-950 dark:text-teal-200">
+              <p className="text-xs font-semibold text-emerald-800">
                 Fast2SMS Verified Mobile
               </p>
-              <p className="text-xs font-mono text-teal-700 dark:text-teal-400">{verifiedPhone}</p>
+              <p className="text-xs font-mono text-emerald-600">{verifiedPhone}</p>
             </div>
           </div>
           <button
             onClick={() => setPhoneVerified(false)}
-            className="text-xs font-medium text-teal-700 dark:text-teal-300 hover:underline"
+            className="text-xs font-medium text-emerald-700 hover:underline"
           >
             Change Phone
           </button>
         </div>
       )}
 
-      {/* 3. Main Patient Intake Form / Voice Call Container */}
-      <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-xl space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-zinc-100 dark:border-zinc-800">
+      {/* Main Patient Intake Form / Voice Call Container */}
+      <GlassCard className="space-y-8 p-8">
+        <div className="flex items-center justify-between pb-6 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <span>Patient OPD Registration</span>
-              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-full bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300">
+            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <span>OPD Details</span>
+              <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold rounded-full bg-primary/10 text-primary">
                 Step 2 of 2
               </span>
             </h2>
-            <p className="text-xs text-zinc-500">Provide details for Gemini AI triage & token generation</p>
+            <p className="text-sm text-gray-500 mt-1">Provide details for Gemini AI triage & token generation</p>
           </div>
 
           {/* Mode Switcher */}
-          <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 text-xs font-medium">
+          <div className="flex items-center p-1 bg-surface rounded-2xl border border-gray-100 text-xs font-medium">
             <button
               type="button"
               onClick={() => setIntakeMode("form")}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 ${
                 intakeMode === "form"
-                  ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm font-semibold"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                  ? "bg-white text-foreground shadow-sm font-semibold border border-gray-100"
+                  : "text-gray-500 hover:text-foreground"
               }`}
             >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Manual Form</span>
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Manual Form</span>
             </button>
             <button
               type="button"
@@ -325,20 +321,20 @@ export default function PatientCheckInForm({
                 setIntakeMode("voice");
                 setShowVoiceCallModal(true);
               }}
-              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+              className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 ${
                 intakeMode === "voice"
-                  ? "bg-teal-600 text-white shadow-sm font-semibold"
-                  : "text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+                  ? "bg-primary text-white shadow-sm font-semibold"
+                  : "text-primary hover:bg-primary/5"
               }`}
             >
-              <Bot className="w-3.5 h-3.5" />
-              <span>AI Chat</span>
+              <Bot className="w-4 h-4" />
+              <span className="hidden sm:inline">AI Chat</span>
             </button>
           </div>
         </div>
 
         {errorMsg && (
-          <div className="p-3.5 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+          <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-xs flex items-center gap-2 font-medium">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
@@ -346,14 +342,14 @@ export default function PatientCheckInForm({
 
         {/* Doctor Selection */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center gap-1.5">
-            <Stethoscope className="w-4 h-4 text-teal-600" />
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <Stethoscope className="w-4 h-4 text-primary" />
             Select Doctor / Department
           </label>
           <select
             value={selectedDoctorId}
             onChange={(e) => setSelectedDoctorId(e.target.value)}
-            className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs font-medium text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all cursor-pointer"
+            className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
           >
             {doctors.map((doc) => (
               <option key={doc.id} value={doc.id}>
@@ -364,11 +360,11 @@ export default function PatientCheckInForm({
         </div>
 
         {/* Form Intake View */}
-        <form onSubmit={handleSubmitCheckIn} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmitCheckIn} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center gap-1">
-                <User className="w-3.5 h-3.5 text-zinc-400" />
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <User className="w-4 h-4 text-gray-400" />
                 Patient Full Name *
               </label>
               <input
@@ -377,13 +373,13 @@ export default function PatientCheckInForm({
                 placeholder="e.g. Ramesh Kumar"
                 value={patientName}
                 onChange={(e) => setPatientName(e.target.value)}
-                className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Age
                 </label>
                 <input
@@ -391,18 +387,18 @@ export default function PatientCheckInForm({
                   placeholder="e.g. 42"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="w-full px-3 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                   Gender
                 </label>
                 <select
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  className="w-full px-2 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -413,11 +409,11 @@ export default function PatientCheckInForm({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <Activity className="w-3.5 h-3.5 text-teal-600" />
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Activity className="w-4 h-4 text-primary" />
                 Symptoms / Chief Complaint *
-              </span>
+              </label>
               <button
                 type="button"
                 onClick={() => {
@@ -431,24 +427,24 @@ export default function PatientCheckInForm({
                   }
                 }}
                 disabled={!chiefComplaint || isValidatingGemini}
-                className="text-[11px] text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1 font-medium disabled:opacity-40"
+                className="text-xs text-secondary hover:text-primary transition-colors flex items-center gap-1 font-bold disabled:opacity-40"
               >
-                <Sparkles className="w-3 h-3" />
+                <Sparkles className="w-3.5 h-3.5" />
                 Verify with Gemini AI
               </button>
-            </label>
+            </div>
             <textarea
               required
               rows={3}
               placeholder="Describe your health symptoms in detail (e.g., High fever for 2 days, severe body pain, and sore throat)"
               value={chiefComplaint}
               onChange={(e) => setChiefComplaint(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
               Prior Medical History / Allergies (Optional)
             </label>
             <input
@@ -456,69 +452,72 @@ export default function PatientCheckInForm({
               placeholder="e.g. Hypertension, Diabetes, Asthma"
               value={priorHistory}
               onChange={(e) => setPriorHistory(e.target.value)}
-              className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-2xl text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full px-4 py-3 bg-surface border border-gray-200 rounded-2xl text-sm font-medium text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             />
           </div>
 
           {/* Gemini Validation Feedback Banner */}
           {isValidatingGemini && (
-            <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
+            <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm flex items-center gap-3 font-medium">
+              <RefreshCw className="w-5 h-5 animate-spin text-indigo-600" />
               <span>Gemini 3.6 Flash AI is analyzing data sanity & triaging complaint...</span>
             </div>
           )}
 
           {geminiResult && !isValidatingGemini && (
             <div
-              className={`p-4 rounded-2xl border text-xs space-y-1.5 ${
+              className={`p-5 rounded-2xl border text-sm space-y-2 ${
                 geminiResult.isValid
-                  ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200"
-                  : "bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-red-900 dark:text-red-200"
+                  ? "bg-emerald-50 border-emerald-100 text-emerald-900"
+                  : "bg-red-50 border-red-100 text-red-900"
               }`}
             >
-              <div className="flex items-center justify-between font-semibold">
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  Gemini AI Verification & Triage
+              <div className="flex items-center justify-between font-bold">
+                <span className="flex items-center gap-2">
+                  <Sparkles className={`w-5 h-5 ${geminiResult.isValid ? "text-emerald-500" : "text-red-500"}`} />
+                  Gemini AI Verification
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                  className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
                     geminiResult.triageLevel === "express"
-                      ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+                      ? "bg-red-100 text-red-700"
                       : geminiResult.triageLevel === "priority"
-                      ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
-                      : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-emerald-100 text-emerald-800"
                   }`}
                 >
                   Triage: {geminiResult.triageLevel || "routine"}
                 </span>
               </div>
-              <p className="text-[11px] opacity-90">{geminiResult.reasoning}</p>
+              <p className="text-xs opacity-90 leading-relaxed font-medium">{geminiResult.reasoning}</p>
               {geminiResult.sanitizedSummary && (
-                <p className="text-[11px] font-mono text-zinc-600 dark:text-zinc-400">
+                <p className="text-xs font-mono text-gray-600 mt-2 p-3 bg-white/50 rounded-xl border border-white/20">
                   Doctor Summary: &quot;{geminiResult.sanitizedSummary}&quot; ({geminiResult.predictedMins} mins predicted)
                 </p>
               )}
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={isSubmitting || !phoneVerified}
-            className="w-full py-4 px-6 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-semibold text-sm rounded-2xl transition-all shadow-xl shadow-teal-600/25 flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <ShieldCheck className="w-5 h-5" />
-                <span>Verify & Issue Token</span>
-                <ArrowRight className="w-5 h-5" />
-              </>
-            )}
-          </button>
+          <div className="pt-4 border-t border-gray-100">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isSubmitting || !phoneVerified}
+              className="w-full py-4 text-sm"
+            >
+              {isSubmitting ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <ShieldCheck className="w-5 h-5 mr-2" />
+                  <span>Verify & Issue Token</span>
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
         </form>
-      </div>
+      </GlassCard>
 
       {/* AI Chat Modal Trigger */}
       {showVoiceCallModal && (

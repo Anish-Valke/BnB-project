@@ -1,8 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { User, Clock, AlertTriangle, CheckCircle, SkipForward, ArrowRight, Activity, Users, Loader2 } from "lucide-react";
+import { Activity, Users, AlertTriangle, Loader2, CheckCircle } from "lucide-react";
 import { Doctor, Token, QueueResponse } from "@/lib/types";
+import DoctorPatientCard from "@/components/doctor/DoctorPatientCard";
+import QueueControls from "@/components/doctor/QueueControls";
+import PrescriptionEditor from "@/components/doctor/PrescriptionEditor";
+import GlassCard from "@/components/ui/GlassCard";
 
 export default function DoctorConsolePage() {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
@@ -82,17 +86,16 @@ export default function DoctorConsolePage() {
         }),
       });
       if (res.ok) {
-        // Fetch to ensure true state alignment
         setDoctorNotes("");
         setPrescriptionText("");
         await fetchQueue();
       } else {
         console.error(`Action ${action} failed`);
-        await fetchQueue(); // Revert on failure
+        await fetchQueue(); 
       }
     } catch (err) {
       console.error(err);
-      await fetchQueue(); // Revert on failure
+      await fetchQueue(); 
     } finally {
       setActionLoading(null);
     }
@@ -100,318 +103,166 @@ export default function DoctorConsolePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 lg:p-10 font-sans">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header Section */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-              {doctor?.name || "Dr. Anjali Sharma"}
-            </h1>
-            <p className="text-slate-500 font-medium flex items-center mt-1">
-              <Activity className="w-4 h-4 mr-1.5 text-emerald-500" />
-              {doctor?.department || "General Medicine (Room 104)"}
-            </p>
-          </div>
-          <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row gap-3">
-            {doctor?.emergency_delay ? (
-              <div className="flex items-center space-x-2 bg-red-50 text-red-700 px-4 py-2 rounded-xl border border-red-200 font-medium text-sm">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Emergency Delay: +{doctor.emergency_delay}m</span>
+    <div className="min-h-screen bg-background font-sans">
+      {/* Top Navigation / Header */}
+      <header className="bg-white border-b border-gray-200/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                <Activity className="w-6 h-6" />
               </div>
-            ) : null}
-            <div className="flex items-center space-x-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
-              <Users className="w-5 h-5 text-slate-400" />
-              <div className="text-sm">
-                <span className="block text-slate-500 font-semibold">Queue Status</span>
-                <span className="block text-slate-900 font-bold">{queue.length} Patients Waiting</span>
+              <div>
+                <h1 className="text-xl font-black text-foreground">
+                  {doctor?.name || "Dr. Anjali Sharma"}
+                </h1>
+                <p className="text-sm text-secondary font-medium flex items-center">
+                  {doctor?.department || "General Medicine"} &bull; {doctor?.room_number || "Room 104"}
+                </p>
               </div>
             </div>
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Active Patient & Controls */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Active Patient Card */}
-            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 relative min-h-[300px]">
-              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 bg-emerald-50 rounded-full blur-3xl"></div>
-
-              <div className="p-6 sm:p-8 relative z-10">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                      Now Serving
-                    </p>
-                    <div className="text-5xl font-black text-emerald-600">
-                      {currentServing ? `#${currentServing.token_number}` : "--"}
-                    </div>
-                  </div>
-                  {currentServing?.triage_level && (
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                        currentServing.triage_level === "express"
-                          ? "bg-red-100 text-red-700"
-                          : currentServing.triage_level === "priority"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-slate-100 text-slate-700"
-                      }`}
-                    >
-                      {currentServing.triage_level}
-                    </span>
-                  )}
+            
+            <div className="flex flex-wrap items-center gap-3">
+              {doctor?.emergency_delay ? (
+                <div className="flex items-center space-x-2 bg-red-50 text-red-700 px-4 py-2 rounded-xl border border-red-100 font-medium text-sm">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Emergency Delay: +{doctor.emergency_delay}m</span>
                 </div>
-
-                <div className="space-y-4">
-                  {currentServing ? (
-                    <>
-                      <div>
-                        <h2 className="text-xl font-bold text-slate-900 flex items-center justify-between">
-                          <span className="flex items-center">
-                            <User className="w-5 h-5 mr-2 text-slate-400" />
-                            {currentServing.patient_name}
-                          </span>
-                          {currentServing.patient_phone && (
-                            <span className="text-xs font-mono text-slate-500 font-normal">
-                              📞 {currentServing.patient_phone}
-                            </span>
-                          )}
-                        </h2>
-                      </div>
-
-                      <div className="bg-emerald-50/60 rounded-xl p-3 border border-emerald-100 text-xs space-y-1">
-                        <span className="font-bold text-emerald-800 uppercase text-[10px] tracking-wider">
-                          Patient Registered Profile & History
-                        </span>
-                        <p className="text-slate-700">
-                          Prior History: <strong className="text-emerald-950">Hypertension (5 yrs), Diabetes</strong>
-                        </p>
-                      </div>
-
-                      <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                          Chief Complaint (AI Verified & Sanitized)
-                        </p>
-                        <p className="text-slate-800 font-medium text-sm leading-relaxed">{currentServing.chief_complaint}</p>
-                      </div>
-
-                      <div className="flex items-center text-slate-600 font-medium text-xs">
-                        <Clock className="w-4 h-4 mr-1.5 text-amber-500" />
-                        AI Estimated Duration: {currentServing.predicted_mins} mins
-                      </div>
-
-                      <div className="pt-4 border-t border-slate-100 space-y-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Doctor Notes</label>
-                          <textarea
-                            value={doctorNotes}
-                            onChange={(e) => setDoctorNotes(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                            placeholder="Internal notes (optional)..."
-                            rows={2}
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Prescription & Advice</label>
-                          <textarea
-                            value={prescriptionText}
-                            onChange={(e) => setPrescriptionText(e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                            placeholder="Write prescription medicines, tests, or advice here..."
-                            rows={4}
-                          />
-                        </div>
-                      </div>
-
-                      {patientHistory.length > 0 && (
-                        <div className="pt-4 border-t border-slate-100 space-y-3">
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Past Prescriptions & Visits</label>
-                          <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
-                            {patientHistory.map((hist) => (
-                              <div key={hist.id} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                                <div className="flex justify-between items-center mb-1">
-                                  <span className="text-xs font-bold text-slate-700">{hist.date}</span>
-                                  <span className="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{hist.department}</span>
-                                </div>
-                                <p className="text-xs text-slate-500 italic mb-2">Complaint: {hist.chief_complaint}</p>
-                                {hist.prescription_text && (
-                                  <p className="text-sm font-medium text-slate-800 bg-white p-2 border border-slate-200 rounded text-left whitespace-pre-wrap">
-                                    {hist.prescription_text}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-slate-500 flex flex-col items-center justify-center pt-8">
-                      <p>No patient currently being served.</p>
-                      <p className="text-sm">Call the next token to begin.</p>
-                    </div>
-                  )}
+              ) : null}
+              <div className="flex items-center space-x-3 bg-surface px-4 py-2 rounded-xl border border-gray-100">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="block text-xs text-gray-500 font-bold uppercase tracking-wider">Queue</span>
+                  <span className="block text-sm text-foreground font-black">{queue.length} Waiting</span>
                 </div>
               </div>
-            </div>
-
-            {/* Control Actions */}
-            <div className="space-y-3">
-              <button
-                onClick={() => handleAction("next")}
-                disabled={!!actionLoading || queue.length === 0}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-600/20 transition-all active:scale-95 flex items-center justify-center text-lg disabled:cursor-not-allowed"
-              >
-                {actionLoading === "next" ? (
-                  <Loader2 className="w-6 h-6 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle className="w-6 h-6 mr-2" />
-                )}
-                Call Next Token
-              </button>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  onClick={() => handleAction("skip")}
-                  disabled={!!actionLoading || !currentServing}
-                  className="bg-white hover:bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400 border border-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed"
-                >
-                  {actionLoading === "skip" ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin text-slate-400" />
-                  ) : (
-                    <SkipForward className="w-4 h-4 mr-2 text-slate-400" />
-                  )}
-                  Skip / No-Show
-                </button>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => handleAction("emergency", 2)}
-                    disabled={!!actionLoading}
-                    className="bg-red-50 hover:bg-red-100 disabled:bg-red-50/50 disabled:text-red-400 border border-red-200 text-red-700 font-semibold py-2 px-2 rounded-xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed text-xs sm:text-sm"
-                  >
-                    +2m
-                  </button>
-                  <button
-                    onClick={() => handleAction("emergency", 5)}
-                    disabled={!!actionLoading}
-                    className="bg-red-50 hover:bg-red-100 disabled:bg-red-50/50 disabled:text-red-400 border border-red-200 text-red-700 font-semibold py-2 px-2 rounded-xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed text-xs sm:text-sm"
-                  >
-                    +5m
-                  </button>
-                  <button
-                    onClick={() => handleAction("emergency", 10)}
-                    disabled={!!actionLoading}
-                    className="bg-red-50 hover:bg-red-100 disabled:bg-red-50/50 disabled:text-red-400 border border-red-200 text-red-700 font-semibold py-2 px-2 rounded-xl transition-all active:scale-95 flex items-center justify-center disabled:cursor-not-allowed text-xs sm:text-sm"
-                  >
-                    +10m
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Queue Table */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden h-full flex flex-col">
-              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-slate-800">Incoming Queue</h2>
-                <div className="text-sm text-slate-500 font-medium">Next {queue.length} Patients</div>
-              </div>
-
-              <div className="overflow-x-auto flex-1">
-                {queue.length > 0 ? (
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold border-b border-slate-100">
-                        <th className="p-4 pl-6 whitespace-nowrap">Token</th>
-                        <th className="p-4 whitespace-nowrap">Patient</th>
-                        <th className="p-4 whitespace-nowrap">Complaint</th>
-                        <th className="p-4 whitespace-nowrap">Duration</th>
-                        <th className="p-4 pr-6 text-right whitespace-nowrap">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {queue.map((item) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                          <td className="p-4 pl-6">
-                            <span className="font-bold text-slate-900 text-lg">#{item.token_number}</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="font-medium text-slate-900">{item.patient_name}</div>
-                            <div className="mt-1">
-                              {item.triage_level === "routine" && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">
-                                  Routine
-                                </span>
-                              )}
-                              {item.triage_level === "priority" && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
-                                  Priority
-                                </span>
-                              )}
-                              {item.triage_level === "express" && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
-                                  Express
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td
-                            className="p-4 text-slate-600 text-sm max-w-[200px] truncate"
-                            title={item.chief_complaint}
-                          >
-                            {item.chief_complaint}
-                          </td>
-                          <td className="p-4">
-                            <span className="inline-flex items-center text-sm font-semibold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md">
-                              ~{item.predicted_mins}m
-                            </span>
-                          </td>
-                          <td className="p-4 pr-6 text-right">
-                            <button
-                              disabled={!!actionLoading}
-                              onClick={() => {
-                                // Currently acts the same as calling next globally 
-                                // To make this work optimally we could create a /call specific endpoint
-                                // but for now, we leave the action icon visual.
-                                handleAction("next");
-                              }}
-                              className="text-emerald-600 hover:text-emerald-700 disabled:opacity-50 opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-emerald-50 rounded-full"
-                              title="Call Next"
-                            >
-                              <ArrowRight className="w-5 h-5" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center p-12 text-slate-400">
-                    <CheckCircle className="w-12 h-12 mb-4 text-slate-200" />
-                    <p className="text-lg font-medium text-slate-600">The queue is empty.</p>
-                    <p className="text-sm">All patients have been attended to.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Empty State / End of Queue */}
-              {queue.length > 0 && (
-                <div className="p-6 text-center text-slate-500 text-sm border-t border-slate-100 mt-auto bg-slate-50/30">
-                  End of visible queue
-                </div>
-              )}
             </div>
           </div>
         </div>
-      </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* Left Column: Active Patient & Actions */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-black text-foreground">Consultation Room</h2>
+            </div>
+
+            {currentServing ? (
+              <>
+                <DoctorPatientCard
+                  tokenNumber={currentServing.token_number}
+                  patientName={currentServing.patient_name}
+                  age={currentServing.age || 35}
+                  gender={currentServing.gender || "Unknown"}
+                  phone={currentServing.patient_phone || "No phone"}
+                  complaint={currentServing.chief_complaint}
+                  priorHistory={currentServing.prior_history || ""}
+                  predictedMins={currentServing.predicted_mins}
+                />
+
+                <PrescriptionEditor
+                  doctorNotes={doctorNotes}
+                  setDoctorNotes={setDoctorNotes}
+                  prescriptionText={prescriptionText}
+                  setPrescriptionText={setPrescriptionText}
+                  patientHistory={patientHistory}
+                />
+              </>
+            ) : (
+              <GlassCard className="flex flex-col items-center justify-center py-24 text-center border-dashed border-2">
+                <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle className="w-8 h-8 text-gray-300" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-500 mb-2">Room is Empty</h3>
+                <p className="text-sm text-gray-400 max-w-md">
+                  There is no patient currently in the consultation room. Call the next patient to begin.
+                </p>
+              </GlassCard>
+            )}
+
+            {/* Sticky bottom controls for the room */}
+            <div className="sticky bottom-6 z-40 bg-white/80 backdrop-blur-md p-4 rounded-3xl border border-gray-200/50 shadow-2xl">
+              <QueueControls
+                onNextPatient={() => handleAction("next")}
+                onWaitPatient={() => handleAction("skip")}
+                onAddDelay={(mins) => handleAction("emergency", mins)}
+                isLoading={!!actionLoading}
+              />
+            </div>
+            
+          </div>
+
+          {/* Right Column: Waiting Queue list */}
+          <div className="lg:col-span-5 space-y-6">
+            <h2 className="text-2xl font-black text-foreground">Waiting Queue</h2>
+            
+            <GlassCard className="p-0 overflow-hidden">
+              <div className="bg-surface-hover px-5 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 className="font-bold text-foreground">Next Up</h3>
+                <span className="text-xs font-bold px-2.5 py-1 bg-white rounded-full border border-gray-200 shadow-sm">
+                  {queue.length} Total
+                </span>
+              </div>
+              
+              <div className="max-h-[800px] overflow-y-auto">
+                {queue.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {queue.map((item) => (
+                      <div key={item.id} className="p-5 hover:bg-surface-hover transition-colors flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-surface border border-gray-100 flex items-center justify-center shrink-0">
+                          <span className="text-lg font-black text-primary">#{item.token_number}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-bold text-foreground truncate">{item.patient_name}</h4>
+                            <span className="text-xs font-semibold text-gray-500 shrink-0">
+                              ~{item.predicted_mins}m
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 truncate">{item.chief_complaint}</p>
+                          
+                          {/* Triage badges */}
+                          <div className="mt-2 flex gap-2">
+                            {item.triage_level === "priority" && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">
+                                Priority
+                              </span>
+                            )}
+                            {item.triage_level === "express" && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700">
+                                Express
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-12 text-center text-gray-400">
+                    <p className="font-semibold text-gray-500">Queue is empty</p>
+                    <p className="text-sm mt-1">All patients have been seen.</p>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+          </div>
+          
+        </div>
+      </main>
     </div>
   );
 }

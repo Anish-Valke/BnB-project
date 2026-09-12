@@ -19,6 +19,9 @@ export interface Token {
   doctor_id: string;
   patient_name: string;
   patient_phone?: string;
+  age?: number;
+  gender?: string;
+  prior_history?: string;
   chief_complaint: string;
   triage_level: TriageLevel;
   predicted_mins: number;

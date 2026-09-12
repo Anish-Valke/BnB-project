@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Phone, Lock, CheckCircle2, ShieldCheck, ArrowRight, RefreshCw, AlertCircle } from "lucide-react";
+import GlassCard from "./ui/GlassCard";
+import Button from "./ui/Button";
 
 interface PhoneOtpModalProps {
   onVerified: (phoneNumber: string) => void;
@@ -97,10 +99,10 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-xl backdrop-blur-md">
+    <GlassCard className="w-full max-w-md mx-auto">
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-teal-50 dark:bg-teal-950/50 flex items-center justify-center text-teal-600 dark:text-teal-400 font-semibold shadow-inner">
+          <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-semibold shadow-inner">
             <Phone className="w-5 h-5" />
           </div>
           <div>
@@ -112,7 +114,7 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
             </p>
           </div>
         </div>
-        <span className="px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300">
+        <span className="px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase rounded-full bg-primary/10 text-primary">
           Fast2SMS API
         </span>
       </div>
@@ -153,20 +155,20 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
             </div>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading || phone.length < 10}
-            className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium text-sm rounded-2xl transition-all shadow-lg shadow-teal-600/20 flex items-center justify-center gap-2"
+            className="w-full"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <span>Send OTP via Fast2SMS</span>
+                <span className="mr-2">Send OTP via Fast2SMS</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -217,36 +219,36 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
             </button>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={loading || otp.length < 6}
-            className="w-full py-3.5 px-4 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium text-sm rounded-2xl transition-all shadow-lg shadow-teal-600/20 flex items-center justify-center gap-2"
+            className="w-full"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-4 h-4 mr-2" />
                 <span>Verify OTP & Continue</span>
               </>
             )}
-          </button>
+          </Button>
         </form>
       )}
 
       {step === "verified" && (
         <div className="py-6 flex flex-col items-center justify-center text-center space-y-3">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-600/20 animate-bounce">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-600/20 animate-bounce">
             <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h4 className="text-base font-semibold text-zinc-900 dark:text-white">
+          <h4 className="text-base font-semibold text-foreground">
             Mobile Verified!
           </h4>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-gray-500">
             {phone} verified via Fast2SMS. Proceeding to intake...
           </p>
         </div>
       )}
-    </div>
+    </GlassCard>
   );
 }
