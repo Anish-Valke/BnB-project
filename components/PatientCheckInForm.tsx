@@ -30,6 +30,7 @@ interface PatientCheckInFormProps {
   initialAge?: number;
   initialGender?: string;
   initialPriorHistory?: string;
+  onSuccess?: () => void;
 }
 
 const DEFAULT_DOCTORS: Doctor[] = [
@@ -42,24 +43,6 @@ const DEFAULT_DOCTORS: Doctor[] = [
     velocity_factor: 1.0,
     emergency_delay: 0,
   },
-  {
-    id: "doc_cardiology_201",
-    name: "Dr. Vikram Mehta",
-    department: "Cardiology",
-    room_number: "Room 201",
-    current_token: 25,
-    velocity_factor: 1.1,
-    emergency_delay: 5,
-  },
-  {
-    id: "doc_orthopedics_108",
-    name: "Dr. Rajesh Iyer",
-    department: "Orthopedics",
-    room_number: "Room 108",
-    current_token: 15,
-    velocity_factor: 0.9,
-    emergency_delay: 0,
-  },
 ];
 
 export default function PatientCheckInForm({
@@ -69,6 +52,7 @@ export default function PatientCheckInForm({
   initialAge,
   initialGender,
   initialPriorHistory,
+  onSuccess,
 }: PatientCheckInFormProps) {
   const router = useRouter();
 
@@ -253,9 +237,13 @@ export default function PatientCheckInForm({
       }
 
       // 4. Redirect to dashboard
-      router.push(`/patient/dashboard?tab=dashboard`);
-    } catch (err: any) {
-      setErrorMsg(err.message || "An unexpected error occurred during check-in.");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push(`/patient/dashboard?tab=dashboard`);
+      }
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : "An unexpected error occurred during check-in.");
       setIsSubmitting(false);
     }
   };

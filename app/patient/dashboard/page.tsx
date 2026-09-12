@@ -88,8 +88,17 @@ export default function PatientDashboardPage() {
     }
   }, []);
 
-  const fetchDashboardData = async (userPhone: string) => {
-    setLoading(true);
+  // Auto-polling for live updates
+  useEffect(() => {
+    if (!phone || activeTab !== "dashboard") return;
+    const intervalId = setInterval(() => {
+      fetchDashboardData(phone, true);
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, [phone, activeTab]);
+
+  const fetchDashboardData = async (userPhone: string, silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await fetch(`/api/patient/dashboard?phone=${userPhone}`);
       const data = await res.json();
@@ -111,7 +120,7 @@ export default function PatientDashboardPage() {
     } catch (err) {
       console.warn("Failed to fetch patient dashboard data:", err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -324,6 +333,7 @@ export default function PatientDashboardPage() {
             {/* Active Live Token Banner or Empty State */}
             {activeToken && metrics && doctor ? (
               <ActiveQueueCard
+                tokenId={activeToken.id}
                 tokenNumber={activeToken.token_number}
                 currentServing={doctor.current_token}
                 patientsAhead={metrics.patients_ahead}
@@ -336,6 +346,16 @@ export default function PatientDashboardPage() {
                 statusMessage={`Please wait, you have ${metrics.patients_ahead} patients ahead.`}
                 onRefresh={() => {
                   if (phone) fetchDashboardData(phone);
+                }}
+                onCancel={async (tokenId) => {
+                  try {
+                    const res = await fetch(`/api/tokens/${tokenId}/cancel`, { method: "POST" });
+                    if (res.ok) {
+                      if (phone) fetchDashboardData(phone);
+                    }
+                  } catch (err) {
+                    console.warn("Failed to cancel token", err);
+                  }
                 }}
               />
             ) : (
@@ -363,6 +383,10 @@ export default function PatientDashboardPage() {
               initialAge={patient?.age || undefined}
               initialGender={patient?.gender || undefined}
               initialPriorHistory={patient?.prior_history || undefined}
+              onSuccess={() => {
+                if (phone) fetchDashboardData(phone);
+                setActiveTab("dashboard");
+              }}
             />
           </div>
         )}

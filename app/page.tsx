@@ -119,37 +119,7 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Floating Sample Live Token Preview Card */}
-          <div className="w-full max-w-2xl mt-8 pt-4">
-            <div className="p-6 bg-white/90 backdrop-blur-md rounded-3xl border border-emerald-100 shadow-2xl shadow-emerald-600/10 text-left relative overflow-hidden">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                  </span>
-                  <span className="text-xs font-black text-emerald-800 uppercase tracking-wider bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    LIVE REAL-TIME SYNC
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-slate-500">Dr. Anjali Sharma &bull; Room 104</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 pt-4 text-center">
-                <div>
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Your Token</span>
-                  <span className="text-3xl font-black text-emerald-600">#68</span>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Serving Now</span>
-                  <span className="text-3xl font-black text-slate-900">#66</span>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Est. Wait</span>
-                  <span className="text-3xl font-black text-emerald-700">~24 min</span>
-                </div>
-              </div>
-            </div>
-          </div>
+
 
           {/* Scroll Down Indicator */}
           <div className="pt-10 flex flex-col items-center gap-2 text-slate-400 text-xs font-semibold cursor-pointer" onClick={() => scrollToSection("stats")}>
@@ -381,10 +351,6 @@ export default function Home() {
             <Activity className="w-5 h-5 text-emerald-600" />
             <span className="font-bold text-slate-900">ArogyaFlow OPD Queue Engine</span>
             <span>&bull; © 2026</span>
-          </div>
-          <div className="flex items-center gap-2 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-100">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span className="text-emerald-800 text-xs font-bold">ArogyaFlow & Gemini 3.6 Flash Verified</span>
           </div>
         </div>
       </footer>

@@ -68,9 +68,15 @@ export default function DoctorConsolePage() {
       setCurrentServing(nextToken);
       setQueue(queue.slice(1));
     } else if (action === "skip" && queue.length > 0) {
+      const skippedToken = currentServing;
       const nextToken = queue[0];
       setCurrentServing(nextToken);
-      setQueue(queue.slice(1));
+      if (skippedToken) {
+        // Push skipped token to the end of the queue array (optimistically)
+        setQueue([...queue.slice(1), { ...skippedToken, status: "waiting" }]);
+      } else {
+        setQueue(queue.slice(1));
+      }
     } else if (action === "emergency" && doctor && delayMins) {
       setDoctor({ ...doctor, emergency_delay: doctor.emergency_delay + delayMins });
     }

@@ -1,7 +1,7 @@
 import React from "react";
 import GlassCard from "../ui/GlassCard";
 import { Clock, Users, Activity, ChevronRight } from "lucide-react";
-import HindiVoiceButton from "../HindiVoiceButton";
+import VoiceAnnouncement from "../VoiceAnnouncement";
 import StatusBadge from "../StatusBadge";
 
 interface ActiveQueueCardProps {
@@ -15,7 +15,10 @@ interface ActiveQueueCardProps {
   roomNumber: string;
   status: "Now Serving" | "Buffer" | "Relax";
   statusMessage: string;
+  tokenId?: string;
   onRefresh?: () => void;
+  onCancel?: (tokenId: string) => void;
+  hideVoice?: boolean;
 }
 
 export default function ActiveQueueCard({
@@ -29,8 +32,26 @@ export default function ActiveQueueCard({
   roomNumber,
   status,
   statusMessage,
-  onRefresh
+  tokenId,
+  onRefresh,
+  onCancel,
+  hideVoice
 }: ActiveQueueCardProps) {
+  const textEn = `Your token number is ${tokenNumber}. Currently serving token number ${currentServing}. ${statusMessage}`;
+  
+  let statusMessageHi = "Kripya pratiksha karein.";
+  if (statusMessage.includes("Please wait") || statusMessage.includes("patients ahead")) {
+    statusMessageHi = `Kripya pratiksha karein, aapse aage ${patientsAhead} mareej hain.`;
+  } else if (statusMessage.includes("You are next") || statusMessage.includes("buffer")) {
+    statusMessageHi = `Aapki baari aane waali hai! Kripya doctor ke cabin ke paas jaayein.`;
+  } else if (statusMessage.includes("turn") || statusMessage.includes("Serving")) {
+    statusMessageHi = `Aapki baari hai! Kripya doctor ke cabin ke andar jaayein.`;
+  } else {
+    statusMessageHi = statusMessage;
+  }
+  
+  const textHi = `Aapka token number ${tokenNumber} hai. Vartaman mein token number ${currentServing} chal raha hai. ${statusMessageHi}`;
+
   return (
     <GlassCard className="relative overflow-hidden w-full max-w-3xl mx-auto">
       {/* Background Gradient Accent */}
@@ -47,9 +68,12 @@ export default function ActiveQueueCard({
         </div>
 
         <div className="mt-4 md:mt-0 flex items-center gap-3">
-          <HindiVoiceButton
-            text={`आपका टोकन नंबर ${tokenNumber} है। वर्तमान में टोकन नंबर ${currentServing} चल रहा है। ${statusMessage}`}
-          />
+          {!hideVoice && (
+            <VoiceAnnouncement
+              textEn={textEn}
+              textHi={textHi}
+            />
+          )}
           {onRefresh && (
             <button onClick={onRefresh} className="p-2 rounded-full bg-surface-hover hover:bg-gray-200 transition-colors">
               <Activity className="w-5 h-5 text-gray-600" />
@@ -92,6 +116,18 @@ export default function ActiveQueueCard({
           <StatusBadge status={status} size="lg" />
           <span className="font-medium text-foreground hidden sm:block">{statusMessage}</span>
         </div>
+        {tokenId && onCancel && (
+          <button 
+             onClick={() => {
+               if(window.confirm("Are you sure you want to cancel your token?")) {
+                 onCancel(tokenId);
+               }
+             }}
+             className="text-xs text-red-600 font-bold px-3 py-1.5 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+          >
+             Cancel OPD
+          </button>
+        )}
       </div>
     </GlassCard>
   );

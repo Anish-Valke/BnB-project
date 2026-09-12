@@ -56,10 +56,25 @@ export async function POST(
       return NextResponse.json({ error: "No token found to skip" }, { status: 404 });
     }
 
-    // Mark skipped
+    // Find current max token number
+    const { data: maxTokenData } = await supabase
+      .from("tokens")
+      .select("token_number")
+      .eq("doctor_id", doctorId)
+      .order("token_number", { ascending: false })
+      .limit(1);
+      
+    const newMaxToken = (maxTokenData && maxTokenData.length > 0) 
+      ? maxTokenData[0].token_number + 1 
+      : tokenToSkip.token_number + 1;
+
+    // Push to the back of the queue instead of skipping entirely
     await supabase
       .from("tokens")
-      .update({ status: "skipped" })
+      .update({ 
+        status: "waiting",
+        token_number: newMaxToken
+      })
       .eq("id", tokenToSkip.id);
 
     // Call next waiting token

@@ -9,9 +9,9 @@ import { getDeterministicFallback } from "@/lib/ai/fallback";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { doctor_id, patient_name, chief_complaint, triage_level, predicted_mins } = body;
+    const { doctor_id, patient_name, patient_phone, chief_complaint, triage_level, predicted_mins } = body;
 
-    if (!doctor_id || !patient_name || !chief_complaint) {
+    if (!doctor_id || !patient_name || !chief_complaint || !patient_phone) {
       return NextResponse.json(
         { error: "Missing required fields: doctor_id, patient_name, chief_complaint" },
         { status: 400 }
@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
           token_number: newTokenNum,
           doctor_id: doctor_id,
           patient_name: patient_name,
+          patient_phone: patient_phone,
           chief_complaint: chief_complaint,
           triage_level: finalTriageLevel,
           predicted_mins: finalPredictedMins,
