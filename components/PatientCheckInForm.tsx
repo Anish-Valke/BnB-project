@@ -21,9 +21,15 @@ import LocationCheckCard from "./LocationCheckCard";
 import PhoneOtpModal from "./PhoneOtpModal";
 import AiChatModal from "./AiChatModal";
 import { Doctor, LocationVerification, PatientIntakeData, GeminiValidationResult } from "@/lib/types";
+import { getPatientPhoneSession, setPatientPhoneSession } from "@/lib/patient-session";
 
 interface PatientCheckInFormProps {
   initialDoctors?: Doctor[];
+  initialPhone?: string;
+  initialPatientName?: string;
+  initialAge?: number;
+  initialGender?: string;
+  initialPriorHistory?: string;
 }
 
 const DEFAULT_DOCTORS: Doctor[] = [
@@ -56,21 +62,43 @@ const DEFAULT_DOCTORS: Doctor[] = [
   },
 ];
 
-export default function PatientCheckInForm({ initialDoctors }: PatientCheckInFormProps) {
+export default function PatientCheckInForm({
+  initialDoctors,
+  initialPhone,
+  initialPatientName,
+  initialAge,
+  initialGender,
+  initialPriorHistory,
+}: PatientCheckInFormProps) {
   const router = useRouter();
+
+  const activeSessionPhone = initialPhone || (typeof window !== "undefined" ? getPatientPhoneSession() : null);
 
   const [doctors, setDoctors] = useState<Doctor[]>(initialDoctors && initialDoctors.length > 0 ? initialDoctors : DEFAULT_DOCTORS);
   const [selectedDoctorId, setSelectedDoctorId] = useState<string>(doctors[0]?.id || "");
-  const [phoneVerified, setPhoneVerified] = useState<boolean>(false);
-  const [verifiedPhone, setVerifiedPhone] = useState<string>("");
+  const [phoneVerified, setPhoneVerified] = useState<boolean>(() => !!(activeSessionPhone && activeSessionPhone.replace(/\D/g, "").length >= 10));
+  const [verifiedPhone, setVerifiedPhone] = useState<string>(() => (activeSessionPhone ? activeSessionPhone.replace(/\D/g, "") : ""));
   const [locationVerification, setLocationVerification] = useState<LocationVerification | null>(null);
 
   // Form intake state
-  const [patientName, setPatientName] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("Male");
+  const [patientName, setPatientName] = useState(initialPatientName || "");
+  const [age, setAge] = useState(initialAge ? String(initialAge) : "");
+  const [gender, setGender] = useState(initialGender || "Male");
   const [chiefComplaint, setChiefComplaint] = useState("");
-  const [priorHistory, setPriorHistory] = useState("");
+  const [priorHistory, setPriorHistory] = useState(initialPriorHistory || "");
+
+  // Update states if props update dynamically
+  useEffect(() => {
+    if (initialPhone) {
+      setVerifiedPhone(initialPhone.replace(/\D/g, ""));
+      setPhoneVerified(true);
+    }
+    if (initialPatientName) setPatientName(initialPatientName);
+    if (initialAge) setAge(String(initialAge));
+    if (initialGender) setGender(initialGender);
+    if (initialPriorHistory) setPriorHistory(initialPriorHistory);
+  }, [initialPhone, initialPatientName, initialAge, initialGender, initialPriorHistory]);
+
 
   // UI state
   const [intakeMode, setIntakeMode] = useState<"form" | "voice">("form");
@@ -176,13 +204,38 @@ export default function PatientCheckInForm({ initialDoctors }: PatientCheckInFor
         return;
       }
 
-      // 2. Issue Token via API
+      // 2. Register / Upsert Patient Profile in Database & Local Session
+      try {
+        const profRes = await fetch("/api/patient/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: payload.phone,
+            name: payload.patient_name,
+            age: payload.age,
+            gender: payload.gender,
+            prior_history: payload.prior_history,
+          }),
+        });
+        const profData = await profRes.json();
+        if (profData.patient) {
+          setPatientPhoneSession(payload.phone, profData.patient);
+        }
+      } catch (profErr) {
+        console.warn("Profile save notice:", profErr);
+      }
+
+      // 3. Issue Token via API with full patient details
       const tokenRes = await fetch("/api/tokens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           doctor_id: selectedDoctorId,
           patient_name: payload.patient_name,
+          patient_phone: payload.phone,
+          age: payload.age,
+          gender: payload.gender,
+          prior_history: payload.prior_history,
           chief_complaint: validation?.sanitizedSummary || payload.chief_complaint,
           triage_level: validation?.triageLevel || "routine",
           predicted_mins: validation?.predictedMins || 8,
@@ -197,7 +250,7 @@ export default function PatientCheckInForm({ initialDoctors }: PatientCheckInFor
 
       const tokenNum = tokenData.token_number || tokenData.token?.token_number;
 
-      // 3. Redirect to live patient queue tracker
+      // 4. Redirect to live patient queue tracker
       router.push(`/patient/${tokenNum}?doctorId=${selectedDoctorId}`);
     } catch (err: any) {
       setErrorMsg(err.message || "An unexpected error occurred during check-in.");

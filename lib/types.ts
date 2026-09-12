@@ -18,6 +18,7 @@ export interface Token {
   token_number: number;
   doctor_id: string;
   patient_name: string;
+  patient_phone?: string;
   chief_complaint: string;
   triage_level: TriageLevel;
   predicted_mins: number;
@@ -25,6 +26,29 @@ export interface Token {
   created_at: string;
   consultation_started_at?: string | null;
   consultation_completed_at?: string | null;
+  doctor_notes?: string | null;
+  prescription_text?: string | null;
+}
+
+export interface PatientProfile {
+  id?: string;
+  phone: string;
+  name: string;
+  age: number;
+  gender: string;
+  prior_history?: string;
+  created_at?: string;
+}
+
+export interface Prescription {
+  id: string;
+  token_id?: string;
+  doctor_name: string;
+  department: string;
+  date: string;
+  chief_complaint: string;
+  doctor_notes?: string;
+  prescription_text: string;
 }
 
 export interface QueueItemCalculation {

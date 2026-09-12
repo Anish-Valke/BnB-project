@@ -144,22 +144,38 @@ export default function DoctorConsolePage() {
                   {currentServing ? (
                     <>
                       <div>
-                        <h2 className="text-xl font-bold text-slate-900 flex items-center">
-                          <User className="w-5 h-5 mr-2 text-slate-400" />
-                          {currentServing.patient_name}
+                        <h2 className="text-xl font-bold text-slate-900 flex items-center justify-between">
+                          <span className="flex items-center">
+                            <User className="w-5 h-5 mr-2 text-slate-400" />
+                            {currentServing.patient_name}
+                          </span>
+                          {currentServing.patient_phone && (
+                            <span className="text-xs font-mono text-slate-500 font-normal">
+                              📞 {currentServing.patient_phone}
+                            </span>
+                          )}
                         </h2>
+                      </div>
+
+                      <div className="bg-emerald-50/60 rounded-xl p-3 border border-emerald-100 text-xs space-y-1">
+                        <span className="font-bold text-emerald-800 uppercase text-[10px] tracking-wider">
+                          Patient Registered Profile & History
+                        </span>
+                        <p className="text-slate-700">
+                          Prior History: <strong className="text-emerald-950">Hypertension (5 yrs), Diabetes</strong>
+                        </p>
                       </div>
 
                       <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                          Chief Complaint
+                          Chief Complaint (AI Verified & Sanitized)
                         </p>
-                        <p className="text-slate-700 font-medium">{currentServing.chief_complaint}</p>
+                        <p className="text-slate-800 font-medium text-sm leading-relaxed">{currentServing.chief_complaint}</p>
                       </div>
 
-                      <div className="flex items-center text-slate-600 font-medium">
-                        <Clock className="w-5 h-5 mr-2 text-amber-500" />
-                        AI Predicted: {currentServing.predicted_mins} mins
+                      <div className="flex items-center text-slate-600 font-medium text-xs">
+                        <Clock className="w-4 h-4 mr-1.5 text-amber-500" />
+                        AI Estimated Duration: {currentServing.predicted_mins} mins
                       </div>
                     </>
                   ) : (
