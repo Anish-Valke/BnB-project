@@ -128,7 +128,7 @@ const memoryTokensByPhone = new Map<string, any[]>();
 /**
  * Saves a token record associated with a specific patient phone number
  */
-export function saveTokenForPhone(phone: string, token: any): void {
+export function saveTokenForPhone(phone: string, token: unknown): void {
   const cleanPhone = (phone || "").replace(/\D/g, "");
   if (!cleanPhone) return;
   const list = memoryTokensByPhone.get(cleanPhone) || [];
@@ -145,7 +145,7 @@ export function saveTokenForPhone(phone: string, token: any): void {
 /**
  * Gets all tokens associated with a patient phone number
  */
-export function getTokensForPhone(phone: string): any[] {
+export function getTokensForPhone(phone: string): unknown[] {
   const cleanPhone = (phone || "").replace(/\D/g, "");
   if (!cleanPhone) return [];
   return memoryTokensByPhone.get(cleanPhone) || [];

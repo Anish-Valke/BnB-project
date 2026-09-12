@@ -21,7 +21,7 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
   const [timer, setTimer] = useState(60);
 
   useEffect(() => {
-    let interval: any;
+    let interval: NodeJS.Timeout;
     if (step === "otp" && timer > 0) {
       interval = setInterval(() => setTimer((t) => t - 1), 1000);
     }
@@ -59,7 +59,7 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
           setInfoMessage(data.message || "OTP sent to your mobile number via Fast2SMS.");
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || "Network error. Please try again.");
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ export default function PhoneOtpModal({ onVerified, initialPhone = "" }: PhoneOt
           onVerified(phone);
         }, 800);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.message || "Verification failed. Please try again.");
     } finally {
       setLoading(false);

@@ -1,4 +1,4 @@
-import { PredictWaitResult, TriageLevel } from "./types";
+import { PredictWaitResult } from "./types";
 
 export interface FallbackResult extends PredictWaitResult {
   source: "deterministic-fallback";

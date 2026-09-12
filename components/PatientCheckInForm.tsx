@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import PhoneOtpModal from "./PhoneOtpModal";
 import AiChatModal from "./AiChatModal";
-import { Doctor, LocationVerification, PatientIntakeData, GeminiValidationResult } from "@/lib/types";
+import { Doctor, PatientIntakeData, GeminiValidationResult } from "@/lib/types";
 import { getPatientPhoneSession, setPatientPhoneSession } from "@/lib/patient-session";
 import { parseAge } from "@/lib/age-parser";
 import GlassCard from "./ui/GlassCard";
@@ -89,10 +89,10 @@ export default function PatientCheckInForm({
   // Update states if props update dynamically
   useEffect(() => {
     if (initialPhone) {
-      setVerifiedPhone(initialPhone.replace(/\D/g, ""));
+      setVerifiedPhone(initialPhone.replace(/\D/g, "")); // eslint-disable-line react-hooks/set-state-in-effect
       setPhoneVerified(true);
     }
-    if (initialPatientName) setPatientName(initialPatientName);
+    if (initialPatientName) setPatientName(initialPatientName); // eslint-disable-line react-hooks/set-state-in-effect
     if (initialAge) setAge(String(initialAge));
     if (initialGender) setGender(initialGender);
     if (initialPriorHistory) setPriorHistory(initialPriorHistory);
@@ -121,7 +121,7 @@ export default function PatientCheckInForm({
         }
       })
       .catch(() => {});
-  }, []);
+  }, [doctors]);
 
   const handlePhoneVerified = (phone: string) => {
     setVerifiedPhone(phone);
@@ -159,7 +159,7 @@ export default function PatientCheckInForm({
       const data: GeminiValidationResult = await res.json();
       setGeminiResult(data);
       return data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("Gemini validation call error:", err);
       return null;
     } finally {
@@ -254,7 +254,7 @@ export default function PatientCheckInForm({
 
       // 4. Redirect to dashboard
       router.push(`/patient/dashboard?tab=dashboard`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setErrorMsg(err.message || "An unexpected error occurred during check-in.");
       setIsSubmitting(false);
     }

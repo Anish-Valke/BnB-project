@@ -10,7 +10,7 @@ async function testTokenCreation() {
   const testPhone = "9876543210";
   const supabase = getServiceSupabase();
 
-  const insertPayload: any = {
+  const insertPayload: unknown = {
     token_number: 99,
     doctor_id: "doc_general_medicine_104",
     patient_name: "Test Patient",

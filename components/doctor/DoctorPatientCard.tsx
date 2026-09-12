@@ -1,6 +1,6 @@
 import React from "react";
 import GlassCard from "../ui/GlassCard";
-import { User, Activity, Clock, FileText } from "lucide-react";
+import { Activity, Clock, FileText } from "lucide-react";
 
 interface DoctorPatientCardProps {
   tokenNumber: number;

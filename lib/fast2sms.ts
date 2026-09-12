@@ -114,7 +114,7 @@ export async function sendFast2SMSOtp(phoneNumber: string): Promise<{
         isDemo: false,
       };
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Fast2SMS Network Error]:", err.message);
     return {
       success: false,

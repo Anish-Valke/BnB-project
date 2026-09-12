@@ -1,7 +1,7 @@
 import React from "react";
 import GlassCard from "../ui/GlassCard";
 import { Pill, Calendar, User, Download } from "lucide-react";
-import Button from "../ui/Button";
+
 
 interface Medicine {
   name: string;
@@ -75,9 +75,9 @@ export default function PrescriptionCard({
 
       {generalInstructions && (
         <div className="mt-6 pt-4 border-t border-gray-100">
-          <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider mb-2">Doctor's Note</h4>
+          <h4 className="font-semibold text-foreground text-sm uppercase tracking-wider mb-2">Doctor&apos;s Note</h4>
           <p className="text-gray-600 bg-yellow-50/50 p-4 rounded-xl border border-yellow-100/50 italic">
-            "{generalInstructions}"
+            &quot;{generalInstructions}&quot;
           </p>
         </div>
       )}

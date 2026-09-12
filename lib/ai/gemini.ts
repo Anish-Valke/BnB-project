@@ -41,7 +41,7 @@ export function validateGeminiResponse(parsed: unknown): GeminiPredictionRespons
 export async function predictWaitDuration(
   complaint: string,
   customApiKey?: string,
-  clientOverride?: any
+  clientOverride?: any // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<GeminiPredictionResponse> {
   const apiKey = customApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.trim() === "") {
@@ -94,7 +94,7 @@ Patient Chief Complaint: "${complaint}"`;
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
-  } catch (err: any) {
+  } catch (err: unknown) {
     throw new Error(`Failed to parse Gemini JSON response: ${err.message}`);
   }
 

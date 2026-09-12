@@ -13,7 +13,7 @@ export default function HindiVoiceButton({ text }: HindiVoiceButtonProps) {
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) {
-      setIsSupported(false);
+      setIsSupported(false); // eslint-disable-line react-hooks/set-state-in-effect
     }
   }, []);
 

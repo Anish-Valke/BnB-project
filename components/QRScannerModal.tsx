@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { QrCode, CheckCircle2, Camera, Upload, Sparkles, Building2, AlertCircle, RefreshCw, Image as ImageIcon } from "lucide-react";
-// @ts-ignore
+// @ts-expect-error - external lib
 import { Html5Qrcode } from "html5-qrcode";
 
 interface QRScannerModalProps {
@@ -24,7 +24,7 @@ export default function QRScannerModal({ onScanSuccess }: QRScannerModalProps) {
     setScanning(false);
 
     // Extract hospital code or name from text/URL if present
-    let hospitalName = "ArogyaFlow City General Hospital";
+    const hospitalName = "ArogyaFlow City General Hospital";
     let hospitalCode = "HOSP-MUM-104";
 
     if (qrText.includes("HOSP")) {
@@ -61,7 +61,7 @@ export default function QRScannerModal({ onScanSuccess }: QRScannerModalProps) {
         // Fallback for custom uploaded images
         processQrResult("HOSP-MUM-104");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("QR file decode fallback:", err?.message || err);
       // Fallback auto-recognition for test images
       processQrResult("HOSP-MUM-104");
@@ -87,7 +87,7 @@ export default function QRScannerModal({ onScanSuccess }: QRScannerModalProps) {
         },
         () => {}
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("Camera start error:", err);
       setErrorMsg("Camera access unavailable. You can upload a QR image or click Simulate Scan.");
       setScanning(false);

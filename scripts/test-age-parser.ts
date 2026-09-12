@@ -1,7 +1,7 @@
 import { parseAge } from "../lib/age-parser";
 
 interface TestCase {
-  input: any;
+  input: unknown;
   expected: number | null;
   label: string;
 }

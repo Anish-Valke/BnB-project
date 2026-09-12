@@ -7,7 +7,7 @@ interface PrescriptionEditorProps {
   setDoctorNotes: (val: string) => void;
   prescriptionText: string;
   setPrescriptionText: (val: string) => void;
-  patientHistory?: any[];
+  patientHistory?: unknown[];
 }
 
 export default function PrescriptionEditor({

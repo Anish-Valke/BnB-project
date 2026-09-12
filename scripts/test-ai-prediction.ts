@@ -44,7 +44,7 @@ async function runAllTests() {
       let caughtStringError = false;
       try {
         validateGeminiResponse({ predicted_mins: "8", triage_level: "routine" });
-      } catch (err: any) {
+      } catch (err: unknown) {
         caughtStringError = err.message.includes("strings or non-integers are rejected");
       }
       assert(caughtStringError, "Rejects string predicted_mins ('8') without string coercion");
@@ -52,7 +52,7 @@ async function runAllTests() {
       let caughtFloatError = false;
       try {
         validateGeminiResponse({ predicted_mins: 8.5, triage_level: "routine" });
-      } catch (err: any) {
+      } catch (err: unknown) {
         caughtFloatError = err.message.includes("integer number");
       }
       assert(caughtFloatError, "Rejects float predicted_mins (8.5)");
@@ -60,7 +60,7 @@ async function runAllTests() {
       let caughtOutOfRangeError = false;
       try {
         validateGeminiResponse({ predicted_mins: 999, triage_level: "routine" });
-      } catch (err: any) {
+      } catch (err: unknown) {
         caughtOutOfRangeError = err.message.includes("between 1 and 60");
       }
       assert(caughtOutOfRangeError, "Rejects out-of-range predicted_mins (> 60)");
@@ -68,7 +68,7 @@ async function runAllTests() {
       let caughtTriageError = false;
       try {
         validateGeminiResponse({ predicted_mins: 5, triage_level: "invalid_level" });
-      } catch (err: any) {
+      } catch (err: unknown) {
         caughtTriageError = err.message.includes("must be routine, priority, or express");
       }
       assert(caughtTriageError, "Rejects invalid triage level");
@@ -105,7 +105,7 @@ async function runAllTests() {
       let threw = false;
       try {
         await predictWaitDuration("Test complaint", undefined, mockFailingClient);
-      } catch (err: any) {
+      } catch (err: unknown) {
         threw = err.message.includes("upstream service");
       }
       assert(threw, "API client failure propagates error to caller");

@@ -84,7 +84,7 @@ Response Rules:
         : "routine") as TriageLevel,
       predictedMins: Number(parsed.predictedMins) || 8,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.warn("[Gemini Intake Validation Fallback]:", err.message);
     return fallbackCheck;
   }

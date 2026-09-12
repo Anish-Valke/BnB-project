@@ -1,6 +1,6 @@
 import React from "react";
 import GlassCard from "../ui/GlassCard";
-import { Clock, Users, Activity, ChevronRight } from "lucide-react";
+import { Clock, Users, Activity } from "lucide-react";
 import HindiVoiceButton from "../HindiVoiceButton";
 import StatusBadge from "../StatusBadge";
 

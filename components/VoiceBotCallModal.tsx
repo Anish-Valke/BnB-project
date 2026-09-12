@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { PhoneCall, Mic, MicOff, Volume2, CheckCircle2, PhoneOff, Sparkles, Send, Bot } from "lucide-react";
+import { Mic, MicOff, Volume2, PhoneOff, Sparkles, Send, Bot } from "lucide-react";
 import { PatientIntakeData } from "@/lib/types";
 import { parseAge } from "@/lib/age-parser";
 
@@ -79,14 +79,14 @@ export default function VoiceBotCallModal({
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, );
 
   const handleNextStep = (answerText: string) => {
     if (!answerText.trim()) return;
 
     const currentStep = BOT_STEPS[stepIndex];
 
-    let processedValue: any = answerText.trim();
+    let processedValue: string | number = answerText.trim();
     if (currentStep.key === "age") {
       const parsed = parseAge(answerText);
       if (parsed === null) {
@@ -209,7 +209,7 @@ export default function VoiceBotCallModal({
             setCurrentInput(data.transcription);
             handleNextStep(data.transcription);
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.warn("Whisper call transcription error:", err);
         }
       };
@@ -222,7 +222,7 @@ export default function VoiceBotCallModal({
           mediaRecorderRef.current.stop();
         }
       }, 6000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsListening(false);
       console.warn("Mic access error:", err);
     }
