@@ -54,3 +54,33 @@ export interface PredictWaitResponse {
   source: 'gemini-3.6-flash' | 'safety-override' | 'deterministic-fallback';
   reasoning?: string;
 }
+
+export interface PatientIntakeData {
+  patient_name: string;
+  phone: string;
+  age?: number | string;
+  gender?: string;
+  doctor_id: string;
+  chief_complaint: string;
+  prior_history?: string;
+}
+
+export interface GeminiValidationResult {
+  isValid: boolean;
+  reasoning: string;
+  validationError?: string;
+  sanitizedSummary?: string;
+  triageLevel?: TriageLevel;
+  predictedMins?: number;
+  recommendedDepartment?: string;
+}
+
+export interface LocationVerification {
+  isWithinRange: boolean;
+  distanceKm: number;
+  userLat?: number;
+  userLng?: number;
+  hospitalName: string;
+  isDummyMode: boolean;
+}
+
