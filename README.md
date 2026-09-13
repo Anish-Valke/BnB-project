@@ -33,7 +33,7 @@ Instead of providing a static token, ArogyaFlow delivers dynamic, live-updating 
 - 🚨 **Real-Time Emergency Delays**
 
 ### Intelligent Wait Estimation & 3-Zone Guidance
-ArogyaFlow utilizes the patient's presenting symptoms/chief complaints to estimate expected consultation duration via Google Gemini 1.5 Flash. It combines these operational estimates with live doctor consultation pace to continuously recalculate expected wait times.
+ArogyaFlow utilizes the patient's presenting symptoms/chief complaints to estimate expected consultation duration via Google Gemini 3.6 Flash. It combines these operational estimates with live doctor consultation pace to continuously recalculate expected wait times.
 
 Patients are guided by 3 clear visual status zones:
 
