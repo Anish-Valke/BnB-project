@@ -69,7 +69,7 @@ ArogyaFlow combines modern web technologies with real-time data orchestration an
 | **Lucide Icons** | Visual icon system |
 | **Supabase PostgreSQL** | Cloud database for tokens, patients, and queue state |
 | **Supabase Realtime** | Real-time websocket queue sync & status updates |
-| **Google Gemini 1.5 Flash** | Operational consultation duration prediction based on triage complaints |
+| **Google Gemini 3.6 Flash** | Operational consultation duration prediction based on triage complaints |
 | **Web Speech API** | Browser-native Hindi voice synthesis & guidance |
 | **Vercel** | Application deployment |
 
